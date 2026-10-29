@@ -31,4 +31,4 @@ Open http://localhost:8000. The service worker needs http(s), so `file://` won't
 
 ## Deploying
 
-The site is static. Deploy the repo root to any static host (Netlify, GitHub Pages, Cloudflare Pages). See `SETUP.md`.
+Netlify deploys the repo root on every push to `main` (config in `netlify.toml`: no build step, `sw.js` and `config.js` served with `no-cache`). Pull requests get deploy previews. See `SETUP.md`.

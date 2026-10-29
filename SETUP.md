@@ -4,7 +4,7 @@ The app works straight away and saves ratings on the phone. Accounts are optiona
 
 ## 1. Put the app online
 
-**Option A, deploy from GitHub (updates automatically):** on https://app.netlify.com choose **Add new site → Import an existing project**, pick this repository, leave the build command empty and set the publish directory to `.`. Every push to the main branch redeploys the site.
+**Option A, deploy from GitHub (updates automatically):** on https://app.netlify.com choose **Add new site → Import an existing project**, connect GitHub and pick this repository. The settings come from `netlify.toml`, so leave the build fields as they are and click **Deploy**. Every push to `main` redeploys the site, and pull requests get their own preview link.
 
 **Option B, drag and drop:** go to https://app.netlify.com/drop and drag the project folder onto the page. Create the free account it offers so the site stays up.
 
