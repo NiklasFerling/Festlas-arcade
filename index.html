@@ -187,7 +187,7 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--acc);outline-of
 .slot{max-width:34px;width:100%;justify-self:center}
 .slot.empty{background:var(--soft);box-shadow:inset 0 2px 3px color-mix(in srgb,var(--ink) 15%,transparent)}
 .slot.sel{outline:3px solid var(--mm);outline-offset:2px}
-.pins{display:grid;grid-template-columns:repeat(var(--L),9px);gap:3px}
+.pins{display:grid;grid-template-columns:repeat(2,9px);gap:3px}
 .pin{width:9px;height:9px;border-radius:50%;background:var(--soft);display:inline-block;vertical-align:middle;box-sizing:border-box}
 .pin.ex{background:var(--ink)}
 .pin.cl{background:transparent;border:2px solid var(--ink)}
@@ -263,7 +263,7 @@ const MM_NAMES=["red","orange","yellow","green","cyan","blue","purple","pink"];
 
 /* ---------- Ratings ---------- */
 const GAMES={
-  sudoku:{name:"Sudoku",c:"var(--sdk)",desc:"Fewer clues as you climb"},
+  sudoku:{name:"Sudoku",c:"var(--sdk)",desc:"Harder techniques as you climb"},
   numbers:{name:"Number Match",c:"var(--num)",desc:"Tighter boards, fewer adds"},
   wordle:{name:"Wordle",c:"var(--wrd)",desc:"Rarer words, then hard mode"},
   mastermind:{name:"Mastermind",c:"var(--mm)",desc:"More pegs and colors as you climb"}
@@ -278,10 +278,10 @@ function lsSet(k,v){try{v==null?localStorage.removeItem(k):localStorage.setItem(
 let store=normalize(lsGet(KEY));
 function save(){lsSet(KEY,store);Acct.push()}
 function targetRating(g){return clamp(store[g].r+rnd(201)-100,400,2600)}
-function applyElo(g,puzzleR,S,mult=1,win=S>=.5){
+function applyElo(g,puzzleR,S,mult=1,win=S>=.5,bonus=0){
   const st=store[g],K=(st.games<10?48:28)*mult;
   const E=1/(1+Math.pow(10,(puzzleR-st.r)/400));
-  const d=Math.round(K*(S-E));
+  const d=Math.round(K*(S-E))+bonus;
   const before=st.r;st.r=Math.max(100,st.r+d);st.games++;if(win)st.wins++;
   st.peak=Math.max(st.peak,st.r);st.hist.push(st.r);if(st.hist.length>30)st.hist.shift();
   save();return{before,after:st.r,d:st.r-before,E};
@@ -399,7 +399,7 @@ function showHome(){
       <div class="rt"><span class="rnum">${s.r}</span><span class="chip${live?" live":""}">${live?"Resume":rankOf(s.r)}</span></div></button>`}).join("")}</section>
   <section class="howto">
     <div><b>How ratings work.</b> Everyone starts at 1000. Solving a puzzle rated above you earns more; failing one rated below you costs more. Your first 10 games in each puzzle move faster.</div>
-    <div><b>What the rating changes.</b> Sudoku removes clues, and your Sudoku result depends on time and mistakes: beat par and you climb faster. Number Match deals tighter boards and fewer adds. Wordle draws rarer words and switches on hard mode from 1700. Mastermind adds repeats, then more pegs and colors; cracking the code in fewer guesses scores higher.</div>
+    <div><b>What the rating changes.</b> Sudoku asks for harder techniques: pointing pairs, then pairs, X-Wings and beyond. Solving is what counts, and a quick clean solve earns a bonus so you reach your level fast. Number Match deals tighter boards and fewer adds. Wordle draws rarer words and switches on hard mode from 1700. Mastermind adds repeats, then more pegs and colors; cracking the code in fewer guesses scores higher.</div>
     <div><b>Tips.</b> Tap Tip in any game. The strategy is free. Revealing the exact move takes ${Math.round(TIP_COST*100)}% off that game's score.</div>
     <div class="ladder">${RANKS.map(([t,n])=>`<span>${n} ${t||"<900"}${t?"+":""}</span>`).join("")}</div>
   </section>`;
@@ -426,15 +426,15 @@ function giveUpButton(onGive){
   return b;
 }
 const tipNote=s=>s.tipsUsed?` ${s.tipsUsed} tip move${s.tipsUsed>1?"s":""} revealed.`:"";
-function finish(g,win,S,detail,mult=1){
+function finish(g,win,S,detail,mult=1,bonus=0){
   const s=sessions[g];if(s.done)return;s.done=true;hideTip();if(g==="sudoku")sdkPause();
-  const res=applyElo(g,s.puzzleR,S,mult,win);
+  const res=applyElo(g,s.puzzleR,S,mult,win,bonus);
   const sc=document.createElement("div");sc.className="scrim";
   const sign=res.d>0?"+":res.d<0?"−":"±";
   const newRank=rankOf(res.after)!==rankOf(res.before)?`<p><b>New rank: ${rankOf(res.after)}</b></p>`:"";
   sc.innerHTML=`<div class="sheet" role="dialog" aria-label="Result"><h3>${win?"Solved":"Not this time"}</h3><p>${detail}${tipNote(s)}</p>
     <div class="delta"><strong class="${res.d>=0?"up":"down"}">${sign}${Math.abs(res.d)}</strong><span>${res.before} → ${res.after}</span></div>${newRank}
-    <p style="font-size:.82rem">Puzzle ${s.puzzleR} vs you ${res.before}: expected score ${Math.round(res.E*100)}%, you scored ${Math.round(S*100)}%.${mult>1?` Speed bonus ×${mult.toFixed(1)}.`:""}</p>
+    <p style="font-size:.82rem">Puzzle ${s.puzzleR} vs you ${res.before}: expected score ${Math.round(res.E*100)}%, you scored ${Math.round(S*100)}%.${mult>1?` Speed bonus ×${mult.toFixed(1)}.`:""}${bonus?` Quick-solve bonus +${bonus}.`:""}</p>
     <div class="btns"><button class="btn" id="toHome">Arcade</button><button class="btn pri" id="next">Next puzzle</button></div></div>`;
   setTimeout(()=>{document.body.appendChild(sc);$("#next",sc).focus()},win?500:350);
   $("#toHome",sc).onclick=()=>{sc.remove();showHome()};
@@ -454,7 +454,7 @@ function rulesHTML(g){
      +rule(`<div class="dstrip">${T(5,"sdkc sel")}<span class="ar">→</span>${[1,2,3].map(n=>T(n,"key")).join("")}</div>`,"Tap a cell, then a number")
      +rule(`<div class="dnotes">${[1,"",3,"","","",7,"",9].map(n=>`<span>${n}</span>`).join("")}</div>`,"<b>✎ Notes</b> pencil in options")
      +rule(`<div class="dstrip">${T(4,"bad")}${T(4,"bad")}${T(4,"bad")}</div>`,"3 mistakes ends the game")
-     +rule(`<div class="dclock">${fmtT(s?s.par:300)}</div>`,"Beat par time for a <b>bigger</b> rating gain");
+     +rule(`<div class="dclock">5:00</div>`,"No time pressure. A <b>quick</b> clean solve earns a bonus");
   }
   if(g==="numbers"){
     let nb="";for(let i=0;i<9;i++)nb+=T(i===4?"6":"",i===4?"sel":"ring");
@@ -535,25 +535,31 @@ function countSol(g,limit){const p=pick(g);if(p.dead)return 0;if(p.best<0)return
   for(let d=1;d<=9&&cnt<limit;d++)if(p.bm&(1<<d)){g[p.best]=d;cnt+=countSol(g,limit-cnt)}g[p.best]=0;return cnt}
 function fillRandom(g){const p=pick(g);if(p.dead)return false;if(p.best<0)return true;
   const ds=shuffle([1,2,3,4,5,6,7,8,9].filter(d=>p.bm&(1<<d)));for(const d of ds){g[p.best]=d;if(fillRandom(g))return true}g[p.best]=0;return false}
-// Par: the time a player rated at this puzzle's level should need. Matching par scores 50%.
-const sdkPar=clues=>150+7*(81-clues);
 const fmtT=sec=>{sec=Math.max(0,Math.floor(sec));return`${Math.floor(sec/60)}:${String(sec%60).padStart(2,"0")}`};
 const sdkSecs=s=>(s.elapsed+(s.runAt?Date.now()-s.runAt:0))/1000;
 let sdkTimer=null;
 function sdkStart(){const s=sessions.sudoku;if(!s||s.done||cur!=="sudoku"||document.hidden)return;if(!s.runAt)s.runAt=Date.now();clearInterval(sdkTimer);sdkTimer=setInterval(sdkTick,500);sdkTick()}
 function sdkPause(){clearInterval(sdkTimer);sdkTimer=null;const s=sessions.sudoku;if(s&&s.runAt){s.elapsed+=Date.now()-s.runAt;s.runAt=null}}
-function sdkTick(){const s=sessions.sudoku,el=$("#sdkTime");if(!s||!el)return;const t=sdkSecs(s);el.textContent=fmtT(t);el.style.color=t>s.par?"var(--bad)":""}
+function sdkTick(){const s=sessions.sudoku,el=$("#sdkTime");if(!s||!el)return;const t=sdkSecs(s);el.textContent=fmtT(t)}
 document.addEventListener("visibilitychange",()=>{if(document.hidden)sdkPause();else if(cur==="sudoku")sdkStart()});
-// Score from pace and mistakes. pace = par / time. Twice as fast as par ≈ 85%, half as fast ≈ 15%.
-function sdkScore(s){const t=Math.max(20,sdkSecs(s)),pace=s.par/t;
-  const S=clamp(clamp(0.5+0.35*Math.log2(pace),0.02,1)-0.15*s.mistakes-TIP_COST*s.tipsUsed,0.02,1);
-  const mult=s.mistakes===0&&!s.tipsUsed?clamp(pace,1,4):clamp(pace,1,2); // fast clean solves move the rating up to 4× faster
-  return{S,mult,t,pace}}
+// Solving is what counts: a solve scores 100%, minus 15% per mistake. Time never costs points.
+// A quick solve means the puzzle was too easy, so it earns a flat bonus (an easy one in 5 minutes ≈ +200).
+function sdkScore(s){const t=sdkSecs(s),quick=(10+4*s.lv)*60;
+  const S=clamp(1-0.15*s.mistakes-TIP_COST*s.tipsUsed,0.3,1);
+  const bonus=s.tipsUsed?0:Math.round(clamp(400*(1-t/quick),0,300)/(1+s.mistakes));
+  return{S,bonus,t}}
+// Difficulty comes from the hardest technique a puzzle needs, not from its clue count.
+// Build a minimal puzzle, give clues back until it's no harder than the target, keep the closest of several tries.
 function makeSudoku(){
-  const R=targetRating("sudoku");const target=clamp(Math.round(50-(R-600)/55),23,50);
-  const sol=new Array(81).fill(0);fillRandom(sol);const puz=sol.slice();let n=81;
-  for(const i of shuffle([...Array(81).keys()])){if(n<=target)break;const v=puz[i];puz[i]=0;if(countSol(puz.slice(),2)!==1)puz[i]=v;else n--}
-  return{sol,puz,cur:puz.slice(),notes:new Array(81).fill(0),sel:-1,mistakes:0,notesMode:false,clues:n,puzzleR:600+(50-n)*55,done:false,tipsUsed:0,hl:null,elapsed:0,runAt:null,par:sdkPar(n)};
+  const R=targetRating("sudoku"),t0=Date.now();let best=null;
+  while(!best||(Date.now()-t0<1500&&Math.abs(best.pr-R)>60)){
+    const sol=new Array(81).fill(0);fillRandom(sol);const puz=sol.slice();
+    for(const i of shuffle([...Array(81).keys()])){const v=puz[i];puz[i]=0;if(countSol(puz.slice(),2)!==1)puz[i]=v}
+    const holes=shuffle([...Array(81).keys()].filter(i=>!puz[i]));let q=sdkGrade(puz),pr=sdkRate(q,81-holes.length);
+    while(pr>R+50&&holes.length>29){const i=holes.pop();puz[i]=sol[i];q=sdkGrade(puz);pr=sdkRate(q,81-holes.length)}
+    if(!best||Math.abs(pr-R)<Math.abs(best.pr-R))best={sol,puz,pr,lv:q.lv}}
+  const {sol,puz,pr,lv}=best,n=puz.filter(v=>v).length;
+  return{sol,puz,cur:puz.slice(),notes:new Array(81).fill(0),sel:-1,mistakes:0,notesMode:false,clues:n,lv,puzzleR:pr,done:false,tipsUsed:0,hl:null,elapsed:0,runAt:null};
 }
 // Units for the tip solver
 const UNITS=[];
@@ -596,7 +602,30 @@ function findElimination(g,cm){
     for(let a=0;a<ds.length;a++)for(let b=a+1;b<ds.length;b++){const A=where[ds[a]],B=where[ds[b]];if(A[0]!==B[0]||A[1]!==B[1])continue;
       const m=(1<<ds[a])|(1<<ds[b]);if(A.every(i=>cm[i]===m))continue;A.forEach(i=>cm[i]&=m);
       return{type:"hiddenpair",unit:u,pair:A,ds:[ds[a],ds[b]],area:A}}}
+  // X-Wing: in two rows a digit fits only in the same two columns (or the same with rows and columns swapped)
+  for(const k of ["row","column"]){const ls=LINES.filter(u=>u.kind===k),cross=k==="row"?i=>i%9:i=>(i/9)|0;
+    for(let d=1;d<=9;d++){const two=ls.map(u=>({u,sp:u.cells.filter(i=>!g[i]&&(cm[i]&(1<<d)))})).filter(x=>x.sp.length===2);
+      for(let a=0;a<two.length;a++)for(let b=a+1;b<two.length;b++){const A=two[a].sp,B=two[b].sp;if(cross(A[0])!==cross(B[0])||cross(A[1])!==cross(B[1]))continue;
+        const rm=LINES.filter(u=>u.kind!==k&&(u.cells.includes(A[0])||u.cells.includes(A[1]))).flatMap(u=>u.cells).filter(i=>!g[i]&&(cm[i]&(1<<d))&&!A.includes(i)&&!B.includes(i));
+        if(rm.length){rm.forEach(i=>cm[i]&=~(1<<d));return{type:"xwing",d,lines:[two[a].u,two[b].u],kind:k,rm,area:[...A,...B]}}}}}
   return null;
+}
+// Grade by solving like a person: singles first, the simplest elimination only when stuck.
+// Level: 0 singles, 1 pointing/claiming, 2 pairs, 3 X-Wing, 4 needs more (chains, trial and error).
+const SDK_TECH={pointing:1,claiming:1,nakedpair:2,hiddenpair:2,xwing:3};
+function sdkGrade(puz){const g=puz.slice(),cm=g.map((v,i)=>v?0:cand(g,i));let lv=0,adv=0;
+  for(;;){const s=findSingle(g,cm);
+    if(s){const {i,d}=s,r=(i/9)|0,c=i%9,br=r-r%3,bc=c-c%3;g[i]=d;cm[i]=0;
+      for(let k=0;k<9;k++){cm[r*9+k]&=~(1<<d);cm[k*9+c]&=~(1<<d);cm[(br+((k/3)|0))*9+bc+k%3]&=~(1<<d)}continue}
+    if(!g.includes(0))return{lv,adv,left:0};
+    const e=findElimination(g,cm);if(!e)return{lv:4,adv,left:g.filter(v=>!v).length};
+    lv=Math.max(lv,SDK_TECH[e.type]);adv++}
+}
+// Singles-only puzzles rate by clue count (450–1000); each technique level has its own band above that.
+function sdkRate(q,clues){
+  if(!q.lv)return clamp(Math.round(450+18*(52-clues)),450,1000);
+  if(q.lv===4)return 2050+Math.min(q.left,50)*6;
+  return[0,1150,1450,1750][q.lv]+Math.min(q.adv-1,8)*20;
 }
 function sudokuTip(s){
   const wrong=[];for(let i=0;i<81;i++)if(s.cur[i]&&s.cur[i]!==s.sol[i])wrong.push(i);
@@ -607,7 +636,7 @@ function sudokuTip(s){
   for(let k=0;k<40;k++){single=findSingle(g,cm);if(single)break;const e=findElimination(g,cm);if(!e)break;elims.push(e)}
   if(!single){
     let best=-1,bc=10;for(let i=0;i<81;i++)if(!g[i]&&pop(cm[i])<bc){bc=pop(cm[i]);best=i}
-    return{title:"Advanced position",strategy:`The basic techniques (singles, pointing, pairs) are stuck here. Strong players now look for an X-Wing or a chain. A practical way in: the cell at ${cellName(best)} has only ${bc} options left.`,
+    return{title:"Advanced position",strategy:`The standard techniques (singles, pointing, pairs, X-Wing) are stuck here. Strong players now look for a chain. A practical way in: the cell at ${cellName(best)} has only ${bc} options left.`,
       move:`${cellName(best)[0].toUpperCase()+cellName(best).slice(1)} is ${s.sol[best]}.`,cell:best,d:s.sol[best],area:[],action:{label:"Place it",fn:()=>placeTip(s,best,s.sol[best])}};
   }
   const {i,d}=single;
@@ -622,7 +651,7 @@ function sudokuTip(s){
     move=`In ${uName(single.unit)}, ${d} can only go in ${cellName(i)}. Every other empty cell there sees a ${d} in its row, column or box.`}
   if(elims.length){
     const e=elims[0];const why=elimText(e);
-    const en={pointing:"Pointing pair",claiming:"Box/line reduction",nakedpair:"Naked pair",hiddenpair:"Hidden pair"}[e.type];
+    const en={pointing:"Pointing pair",claiming:"Box/line reduction",nakedpair:"Naked pair",hiddenpair:"Hidden pair",xwing:"X-Wing"}[e.type];
     title=`${en}, then a ${names[single.type].toLowerCase()}`;
     strategy=`${elimStrategy(e)} That removes options elsewhere, and a ${names[single.type].toLowerCase()} appears.`;
     move=`${elims.slice(0,3).map(elimText).join(" ")}${elims.length>3?" A few more eliminations follow.":""} Now ${move.charAt(0).toLowerCase()+move.slice(1)}`;
@@ -634,18 +663,20 @@ function elimStrategy(e){
   if(e.type==="pointing")return`In ${uName(e.box)}, all the spots for one digit line up in a single ${e.line.kind}. That digit can't appear anywhere else in that ${e.line.kind}.`;
   if(e.type==="claiming")return`In ${uName(e.line)}, all the spots for one digit sit inside one box. That digit can't go anywhere else in that box.`;
   if(e.type==="nakedpair")return`In ${uName(e.unit)}, two cells share the same two options. Those two digits must go in those two cells, so no other cell in the ${e.unit.kind} can use them.`;
+  if(e.type==="xwing")return`In ${uName(e.lines[0])} and ${uName(e.lines[1])}, ${e.d} fits in only two spots each, and the spots line up. The two ${e.d}s must sit on opposite corners of that rectangle, so ${e.d} can't go anywhere else in those ${e.kind==="row"?"columns":"rows"}.`;
   return`In ${uName(e.unit)}, two digits each fit in only the same two cells. Those cells must hold those two digits, so their other options go.`;
 }
 function elimText(e){
   if(e.type==="pointing")return`In ${uName(e.box)}, ${e.d} can only be in ${uName(e.line)}, so ${e.d} is ruled out of the rest of ${uName(e.line)}.`;
   if(e.type==="claiming")return`In ${uName(e.line)}, ${e.d} can only be in ${uName(e.box)}, so ${e.d} is ruled out of the rest of that box.`;
   if(e.type==="nakedpair")return`${cellName(e.pair[0])} and ${cellName(e.pair[1])} can only be ${e.ds.join(" or ")}, so ${e.ds.join(" and ")} are ruled out of the rest of ${uName(e.unit)}.`;
+  if(e.type==="xwing")return`${uName(e.lines[0])[0].toUpperCase()+uName(e.lines[0]).slice(1)} and ${uName(e.lines[1])} form an X-Wing on ${e.d}, so ${e.d} is ruled out of the rest of those ${e.kind==="row"?"columns":"rows"}.`;
   return`In ${uName(e.unit)}, ${e.ds.join(" and ")} only fit in ${cellName(e.pair[0])} and ${cellName(e.pair[1])}, so those cells hold nothing else.`;
 }
 function placeTip(s,i,d){s.sel=i;s.notesMode=false;sdkInput(d)}
 function renderSudoku(){
   const s=sessions.sudoku,st=$("#stage");
-  st.innerHTML=`<div class="info"><span>Clues <b>${s.clues}</b></span><span>Time <b id="sdkTime">${fmtT(sdkSecs(s))}</b> / par ${fmtT(s.par)}</span><span>Mistakes <b id="mis">${s.mistakes}</b>/3</span></div>
+  st.innerHTML=`<div class="info"><span>Clues <b>${s.clues}</b></span><span>Time <b id="sdkTime">${fmtT(sdkSecs(s))}</b></span><span>Mistakes <b id="mis">${s.mistakes}</b>/3</span></div>
    <div class="sgrid" id="sg" role="grid" aria-label="Sudoku board"></div>
    <div class="tools" id="tl"><button class="tool${s.notesMode?" on":""}" id="notesB" aria-pressed="${s.notesMode}">✎ Notes</button><button class="tool" id="eraseB">⌫ Erase</button></div>
    <div class="pad" id="pad"></div>`;
@@ -683,7 +714,7 @@ function sdkInput(d){
   for(let k=0;k<9;k++){s.notes[r*9+k]&=~(1<<d);s.notes[k*9+c]&=~(1<<d);s.notes[(br+((k/3)|0))*9+bc+k%3]&=~(1<<d)}
   drawSudoku();
   if(s.cur.every((v,j)=>v===s.sol[j])){sdkPause();const r=sdkScore(s);
-    finish("sudoku",true,r.S,`Solved in <b>${fmtT(r.t)}</b> (par ${fmtT(s.par)}) with ${s.mistakes?`${s.mistakes} mistake${s.mistakes>1?"s":""}`:"no mistakes"}.`,r.mult)}
+    finish("sudoku",true,r.S,`Solved in <b>${fmtT(r.t)}</b> with ${s.mistakes?`${s.mistakes} mistake${s.mistakes>1?"s":""}`:"no mistakes"}.`,1,r.bonus)}
 }
 function sdkErase(){const s=sessions.sudoku;if(s.done||s.sel<0||s.puz[s.sel])return;s.cur[s.sel]=0;s.notes[s.sel]=0;drawSudoku()}
 
@@ -712,9 +743,15 @@ function nmCleanCells(cells){const rows=[];for(let i=0;i<cells.length;i+=W)rows.
   const kept=rows.filter(r=>r.some(c=>!c.x));let out=kept.flat();while(out.length&&out.at(-1).x)out.pop();return{cells:out,cleared:rows.length-kept.length}}
 function makeNumbers(){
   const R=targetRating("numbers"),t=clamp((R-600)/1500,0,1);
-  const adds=Math.round(5-t*3);
-  const boards=[];for(let k=0;k<50;k++){const cells=Array.from({length:START},()=>({v:1+rnd(9),x:false}));boards.push({cells,open:nmPairs(cells).length})}
-  boards.sort((a,b)=>b.open-a.open);const b=boards[clamp(Math.round(t*(boards.length-1)),0,boards.length-1)];
+  const adds=Math.round(5-t*3),want=Math.round(6-t*4); // pairs in view at the start: 6 for beginners, down to 2
+  // Random board, then re-roll numbers that sit in a pair until only a few pairs show. No digit may take over the board.
+  let b=null;
+  for(let k=0;k<20&&!(b&&b.open===want);k++){const cells=Array.from({length:START},()=>({v:1+rnd(9),x:false})),cnt=Array(10).fill(0);
+    cells.forEach(c=>cnt[c.v]++);let open=nmPairs(cells).length;
+    for(let it=0;it<600&&open>want;it++){const ps=nmPairs(cells),i=ps[rnd(ps.length)][rnd(2)],old=cells[i].v,v=1+rnd(9);
+      if(v===old||cnt[v]>=7)continue;cells[i].v=v;const n=nmPairs(cells).length;
+      if(n<=open&&n>=1){open=n;cnt[old]--;cnt[v]++}else cells[i].v=old}
+    if(!b||Math.abs(open-want)<Math.abs(b.open-want))b={cells,open}}
   return{cells:b.cells,adds,sel:-1,puzzleR:R,open:b.open,done:false,tipsUsed:0,hint:null};
 }
 function numbersTip(s){
