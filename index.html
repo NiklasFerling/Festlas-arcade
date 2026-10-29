@@ -1,0 +1,983 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Puzzle Arcade</title>
+<meta name="theme-color" content="#E8EBF4" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#11132A" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Arcade">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: one-column phone app. Home = three arcade "cabinets" with rating readouts; play = full-height board screen tinted by that game's accent */
+:root{
+  --bg:#E8EBF4; --surface:#FFFFFF; --ink:#191C38; --muted:#5C6287; --line:#CDD2E6; --soft:#DFE3F2;
+  --sdk:#4A4ED6; --num:#D9492F; --wrd:#16806F; --mm:#A23FB8;
+  --ok:#2E9A58; --warn:#D2960E; --bad:#D23838; --absent:#8B90AE; --tip:#F4B400;
+  --key:#DFE3F2; --keyInk:#191C38; --keyUsed:#8B90AE; --keyUsedInk:#FFFFFF;
+  --f-display:"Bungee","Arial Black",Impact,system-ui,sans-serif;
+  --f-body:"Bricolage Grotesque",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+  --acc:var(--sdk);
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#11132A; --surface:#1B1E3C; --ink:#ECEEFF; --muted:#9CA2CC; --line:#30355F; --soft:#262A4D;
+  --sdk:#8C90FF; --num:#FF7A5F; --wrd:#3CC7AE; --mm:#D98CF2;
+  --ok:#3FB96E; --warn:#E5AE2A; --bad:#FF5C5C; --absent:#2D3055; --tip:#FFD24A;
+  --key:#5B6091; --keyInk:#F2F3FF; --keyUsed:#1E2142; --keyUsedInk:#5E6390; color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --bg:#11132A; --surface:#1B1E3C; --ink:#ECEEFF; --muted:#9CA2CC; --line:#30355F; --soft:#262A4D;
+  --sdk:#8C90FF; --num:#FF7A5F; --wrd:#3CC7AE; --mm:#D98CF2;
+  --ok:#3FB96E; --warn:#E5AE2A; --bad:#FF5C5C; --absent:#2D3055; --tip:#FFD24A;
+  --key:#5B6091; --keyInk:#F2F3FF; --keyUsed:#1E2142; --keyUsedInk:#5E6390; color-scheme:dark;}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.45;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  -webkit-tap-highlight-color:transparent;}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none;touch-action:manipulation}
+button:focus-visible,input:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+.wrap{max-width:460px;margin:0 auto;padding-block:18px 28px;display:flex;flex-direction:column;gap:18px;min-height:100%;box-sizing:border-box}
+
+/* Home */
+.brand{display:flex;flex-direction:column;gap:4px}
+.brandrow{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.brand h1{font-family:var(--f-display);font-weight:400;font-size:2.3rem;line-height:1;margin:0;letter-spacing:.01em;text-wrap:balance}
+.brand h1 span{color:var(--sdk)} .brand h1 span+span{color:var(--num)} .brand h1 span+span+span{color:var(--wrd)}
+.brand p{margin:0;color:var(--muted)}
+.acctB{display:flex;align-items:center;gap:6px;padding:7px 12px;border-radius:99px;background:var(--surface);border:1px solid var(--line);font-weight:700;font-size:.85rem;white-space:nowrap;max-width:46%;overflow:hidden;text-overflow:ellipsis}
+.acctB i{width:8px;height:8px;border-radius:50%;background:var(--muted);flex:none}
+.acctB i.on{background:var(--ok)} .acctB i.wait{background:var(--warn)}
+.cabs{display:flex;flex-direction:column;gap:12px}
+.cab{display:grid;grid-template-columns:64px 1fr auto;gap:14px;align-items:center;text-align:left;
+  background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px;position:relative;overflow:hidden;transition:transform .12s}
+.cab:active{transform:scale(.98)}
+.cab::after{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--c)}
+.cab .glyph{width:64px;height:64px;border-radius:12px;background:var(--soft);display:grid;place-items:center}
+.cab h2{font-family:var(--f-display);font-weight:400;font-size:1.15rem;margin:0;line-height:1.1}
+.cab .meta{color:var(--muted);font-size:.85rem;margin-top:2px}
+.cab .rt{text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.rnum{font-family:var(--f-mono);font-weight:700;font-size:1.6rem;line-height:1;font-variant-numeric:tabular-nums;color:var(--c)}
+.chip{font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;padding:3px 8px;border-radius:99px;background:var(--soft);color:var(--ink)}
+.chip.live{background:var(--c);color:var(--surface)}
+.spark{display:block;margin-top:6px}
+.g-sdk{display:grid;grid-template-columns:repeat(3,14px);gap:2px}
+.g-sdk i{height:14px;background:var(--surface);border-radius:2px;font:700 10px/14px var(--f-mono);text-align:center;font-style:normal;color:var(--sdk)}
+.g-num{display:flex;gap:4px;font:700 20px var(--f-mono);color:var(--num)}
+.g-num b{width:22px;height:26px;border-radius:6px;display:grid;place-items:center;border:2px solid var(--num)}
+.g-wrd{display:grid;grid-template-columns:repeat(3,15px);gap:3px}
+.g-wrd i{height:15px;border-radius:3px}
+.howto{font-size:.85rem;color:var(--muted);border-top:1px solid var(--line);padding-top:14px;display:grid;gap:6px}
+.howto b{color:var(--ink)}
+.ladder{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.ladder span{font-size:.72rem;font-family:var(--f-mono);padding:2px 7px;border-radius:6px;background:var(--surface);border:1px solid var(--line);font-variant-numeric:tabular-nums}
+
+/* Play */
+.top{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px}
+.back{font-weight:800;padding:8px 10px 8px 2px;color:var(--muted);justify-self:start}
+.help{justify-self:end;width:34px;height:34px;border-radius:50%;border:2px solid var(--acc);color:var(--acc);font:400 1rem var(--f-display);display:grid;place-items:center;padding:0}
+/* Rules sheet */
+.rules{gap:10px}
+.rl{display:grid;grid-template-columns:136px 1fr;gap:14px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line)}
+.rv{display:flex;align-items:center;gap:8px;min-width:0}
+.rt{color:var(--ink);font-size:.92rem;line-height:1.35}
+.rt b{color:var(--acc)}
+.dstrip{display:flex;gap:3px;align-items:center}
+.dt{width:24px;height:24px;border-radius:5px;background:var(--soft);display:grid;place-items:center;font:700 .85rem var(--f-mono);color:var(--ink)}
+.dt.sel{background:var(--acc);color:var(--surface)} .dt.ring{background:transparent;box-shadow:inset 0 0 0 2px var(--acc)}
+.dt.gone{background:transparent;box-shadow:inset 0 0 0 1px var(--line)} .dt.bad{color:var(--bad)} .dt.key{color:var(--sdk);background:var(--surface);box-shadow:inset 0 0 0 1px var(--line)}
+.d3x3{display:grid;grid-template-columns:repeat(3,22px);gap:3px}.d3x3 .dt{width:22px;height:22px}
+.dwrap{display:flex;flex-direction:column;gap:3px}.dots{color:var(--muted);font-weight:800;width:14px;text-align:center}
+.ar{color:var(--muted);font-weight:800;padding:0 2px}
+.rk{font-weight:800;font-size:1.1rem}.rk.ok{color:var(--ok)}.rk.no{color:var(--bad)}
+.mini9{display:grid;grid-template-columns:repeat(9,9px);gap:1px;background:var(--line);border:2px solid var(--ink);width:max-content}
+.mini9 i{width:9px;height:9px;background:var(--surface)}.mini9 i.hr,.mini9 i.hc{background:var(--sdk)}.mini9 i.hb{background:color-mix(in srgb,var(--sdk) 45%,var(--surface))}
+.dnotes{display:grid;grid-template-columns:repeat(3,11px);width:40px;height:40px;place-items:center;border:1px solid var(--line);border-radius:4px;font:500 .62rem var(--f-mono);color:var(--muted);background:var(--surface)}
+.dclock{font:700 1rem var(--f-mono);color:var(--acc);padding:4px 10px;border:2px solid var(--acc);border-radius:99px}
+.dbtn{padding:4px 10px;border-radius:99px;border:1px solid var(--line);font-weight:600;font-size:.8rem;background:var(--surface)}
+.dword{display:grid;grid-template-columns:repeat(5,34px);gap:5px;margin-bottom:4px}
+.rules .wt{width:34px;font-size:1rem;aspect-ratio:1;box-sizing:border-box}
+.dpeg{width:18px;height:18px;font-size:.55rem;flex:none}.dpeg.hid{background:var(--ink);color:var(--surface)}
+.pin.big{width:16px;height:16px}
+.dtip{pointer-events:none;padding:5px 12px;font-size:.8rem}
+.top h2{font-family:var(--f-display);font-weight:400;font-size:1.2rem;margin:0;text-align:center;color:var(--acc)}
+.vs{display:flex;gap:8px;justify-content:space-between;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px 14px}
+.vs div{display:flex;flex-direction:column}
+.vs small{font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:800}
+.vs strong{font-family:var(--f-mono);font-size:1.15rem;font-variant-numeric:tabular-nums}
+.vs .mid{align-items:center;justify-content:center}
+.vs .right{align-items:flex-end}
+.info{display:flex;justify-content:space-between;gap:8px;color:var(--muted);font-size:.88rem;font-variant-numeric:tabular-nums;min-height:1.3em}
+.info b{color:var(--ink)}
+.stage{display:flex;flex-direction:column;gap:14px;flex:1}
+.loading{display:grid;place-items:center;min-height:260px;color:var(--muted);font-weight:600}
+.giveup{align-self:center;color:var(--muted);font-size:.85rem;padding:8px 14px;border-radius:99px;border:1px solid var(--line)}
+.giveup.arm{color:var(--bad);border-color:var(--bad)}
+.tools{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.tool{display:flex;align-items:center;gap:6px;padding:9px 16px;border-radius:99px;background:var(--surface);border:1px solid var(--line);font-weight:600;font-size:.9rem}
+.tool.on{background:var(--acc);color:var(--surface);border-color:var(--acc)}
+.tool.tipB{border-color:var(--tip)}
+.tool.tipB::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--tip)}
+.tool[disabled]{opacity:.4}
+
+/* Sudoku */
+.sgrid{display:grid;grid-template-columns:repeat(9,1fr);width:100%;max-width:440px;aspect-ratio:1;margin:0 auto;border:2.5px solid var(--ink);border-radius:8px;overflow:hidden;background:var(--surface)}
+.sc{position:relative;display:grid;place-items:center;font:600 clamp(18px,5.6vw,26px) var(--f-body);border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:0;min-width:0}
+.sc:nth-child(9n){border-right:0}
+.sc:nth-child(9n+3),.sc:nth-child(9n+6){border-right:2.5px solid var(--ink)}
+.sc:nth-child(n+19):nth-child(-n+27),.sc:nth-child(n+46):nth-child(-n+54){border-bottom:2.5px solid var(--ink)}
+.sc:nth-child(n+73){border-bottom:0}
+.sc.given{font-weight:800}
+.sc.user{color:var(--sdk)}
+.sc.peer{background:var(--soft)}
+.sc.same{background:color-mix(in srgb,var(--sdk) 22%,var(--surface))}
+.sc.sel{background:color-mix(in srgb,var(--sdk) 38%,var(--surface))}
+.sc.wrong{color:var(--bad)}
+.sc.area{background:color-mix(in srgb,var(--tip) 22%,var(--surface))}
+.sc.hint{box-shadow:inset 0 0 0 3px var(--tip);z-index:1}
+.notes{position:absolute;inset:2px;display:grid;grid-template-columns:repeat(3,1fr);font:500 clamp(8px,2.2vw,11px)/1 var(--f-mono);color:var(--muted)}
+.notes span{display:grid;place-items:center}
+.pad{display:grid;grid-template-columns:repeat(9,1fr);gap:5px;max-width:440px;width:100%;margin:0 auto}
+.pad button{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 0 4px;display:flex;flex-direction:column;align-items:center;font:700 1.35rem var(--f-body);color:var(--sdk)}
+.pad button small{font:500 .62rem var(--f-mono);color:var(--muted)}
+.pad button[disabled]{opacity:.25}
+
+/* Number match */
+.nwrap{max-height:62vh;overflow-y:auto;margin-left:calc(-1 * max(16px,env(safe-area-inset-left,0px)) + 3px);margin-right:calc(-1 * max(16px,env(safe-area-inset-right,0px)) + 3px)}
+.ngrid{display:grid;grid-template-columns:repeat(10,1fr);gap:2px}
+.nc{aspect-ratio:1;border-radius:6px;font:700 clamp(20px,6.4vw,30px) var(--f-mono);display:grid;place-items:center;color:var(--ink);background:var(--soft);padding:0;min-width:0;transition:background .15s,transform .1s}
+.nc.x{background:transparent;color:var(--line);pointer-events:none}
+.nc.blank{background:transparent;pointer-events:none}
+.nc.sel{background:var(--num);color:var(--surface);transform:scale(1.06)}
+.nc.hint{box-shadow:inset 0 0 0 3px var(--tip);background:color-mix(in srgb,var(--tip) 25%,var(--soft))}
+.nc.bad{animation:shake .3s}
+@keyframes shake{25%{transform:translateX(-3px)}75%{transform:translateX(3px)}}
+.rule{font-size:.8rem;color:var(--muted);text-align:center;margin:0}
+
+/* Wordle */
+.wboard{display:grid;grid-template-rows:repeat(6,1fr);gap:6px;width:100%;max-width:300px;margin:0 auto}
+.wrow{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.wrow.bad{animation:shake .3s}
+.wt{aspect-ratio:1;border:2px solid var(--line);border-radius:6px;display:grid;place-items:center;font:400 clamp(22px,7vw,30px) var(--f-display);text-transform:uppercase;background:var(--surface)}
+.wt.filled{border-color:var(--muted)}
+.wt.c,.wt.p,.wt.a{color:#fff;border-color:transparent;animation:flip .45s both}
+.wt.c{background:var(--ok)} .wt.p{background:var(--warn)} .wt.a{background:var(--absent)}
+@keyframes flip{0%{transform:rotateX(0)}50%{transform:rotateX(90deg)}100%{transform:rotateX(0)}}
+.kb{display:flex;flex-direction:column;gap:6px;width:100%;max-width:440px;margin:0 auto}
+.kr{display:flex;gap:5px;justify-content:center}
+.k{flex:1;max-width:42px;height:52px;border-radius:7px;background:var(--key);color:var(--keyInk);font-weight:800;font-size:1rem;text-transform:uppercase;padding:0}
+.k.wide{max-width:66px;flex:1.5;font-size:.72rem}
+.k.c{background:var(--ok);color:#fff} .k.p{background:var(--warn);color:#fff} .k.a{background:var(--keyUsed);color:var(--keyUsedInk)}
+.badge{font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--wrd)}
+
+/* Mastermind */
+.mmboard{display:flex;flex-direction:column;gap:5px;width:100%;max-width:400px;margin:0 auto}
+.mmrow{display:grid;grid-template-columns:22px 1fr auto;align-items:center;gap:10px;padding:4px 8px;border-radius:12px}
+.mmrow.act{background:var(--surface);box-shadow:inset 0 0 0 2px var(--mm)}
+.mmn{font:600 .75rem var(--f-mono);color:var(--muted);text-align:right}
+.mmpegs{display:grid;grid-template-columns:repeat(var(--L),1fr);gap:8px}
+.peg{aspect-ratio:1;border-radius:50%;display:grid;place-items:center;font:700 .72rem var(--f-mono);color:rgba(255,255,255,.85);padding:0;min-width:0;box-shadow:inset 0 -3px 0 rgba(0,0,0,.18)}
+.slot{max-width:34px;width:100%;justify-self:center}
+.slot.empty{background:var(--soft);box-shadow:inset 0 2px 3px color-mix(in srgb,var(--ink) 15%,transparent)}
+.slot.sel{outline:3px solid var(--mm);outline-offset:2px}
+.pins{display:grid;grid-template-columns:repeat(var(--L),9px);gap:3px}
+.pin{width:9px;height:9px;border-radius:50%;background:var(--soft);display:inline-block;vertical-align:middle;box-sizing:border-box}
+.pin.ex{background:var(--ink)}
+.pin.cl{background:transparent;border:2px solid var(--ink)}
+.mmpal{display:grid;grid-template-columns:repeat(var(--C),1fr);gap:8px;width:100%;max-width:440px;margin:0 auto}
+.mmpal .peg{font-size:.85rem;max-width:48px;width:100%;justify-self:center}
+.mmchips{display:inline-flex;gap:3px;vertical-align:middle}
+.mmchips i{width:18px;height:18px;border-radius:50%;display:inline-grid;place-items:center;font:700 .6rem var(--f-mono);color:#fff;font-style:normal}
+.g-mm{display:grid;grid-template-columns:repeat(2,18px);gap:5px}
+.g-mm i{width:18px;height:18px;border-radius:50%}
+
+/* Tip card */
+.tipcard{position:fixed;left:0;right:0;bottom:0;z-index:15;display:flex;justify-content:center;pointer-events:none;
+  padding:0 max(10px,env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(10px,env(safe-area-inset-left,0px))}
+.tipin{pointer-events:auto;width:100%;max-width:460px;box-sizing:border-box;background:var(--surface);border:2px solid var(--tip);border-radius:18px;padding:14px 16px;display:flex;flex-direction:column;gap:8px;box-shadow:0 10px 40px color-mix(in srgb,var(--ink) 30%,transparent);animation:rise .22s ease-out}
+@keyframes rise{from{transform:translateY(30px)}}
+.tiphead{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.tipstep{font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.09em;color:var(--muted)}
+.tipin h4{margin:0;font-size:1.05rem;font-weight:800}
+.tipin p{margin:0;font-size:.92rem;line-height:1.45}
+.tipin .x{font-size:1.3rem;line-height:1;padding:4px 8px;color:var(--muted)}
+.tipin .btns .btn{padding:11px}
+.tipword{font-family:var(--f-display);letter-spacing:.06em;color:var(--wrd)}
+
+/* Sheet + toast */
+.scrim{position:fixed;inset:0;background:color-mix(in srgb,var(--ink) 45%,transparent);display:flex;align-items:flex-end;justify-content:center;z-index:20}
+.sheet{background:var(--surface);width:100%;max-width:460px;border-radius:22px 22px 0 0;box-sizing:border-box;
+  padding:24px max(20px,env(safe-area-inset-right,0px)) calc(22px + env(safe-area-inset-bottom,0px)) max(20px,env(safe-area-inset-left,0px));
+  display:flex;flex-direction:column;gap:14px;animation:up .28s ease-out;max-height:90%;overflow-y:auto}
+@keyframes up{from{transform:translateY(40px);opacity:.4}}
+.sheet h3{font-family:var(--f-display);font-weight:400;font-size:1.6rem;margin:0;color:var(--acc)}
+.sheet p{margin:0;color:var(--muted)}
+.sheet p b{color:var(--ink)}
+.delta{display:flex;align-items:baseline;gap:12px;font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.delta strong{font-size:2.4rem}
+.delta .up{color:var(--ok)} .delta .down{color:var(--bad)}
+.delta span{color:var(--muted)}
+.btns{display:flex;gap:10px}
+.btn{flex:1;padding:14px;border-radius:14px;font-weight:800;background:var(--soft)}
+.btn.pri{background:var(--acc);color:var(--surface)}
+.btn[disabled]{opacity:.5}
+.field{display:flex;flex-direction:column;gap:5px}
+.field label{font-size:.75rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.field input{font:600 1rem var(--f-body);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:12px 14px;-webkit-user-select:text;user-select:text}
+.err{color:var(--bad)!important;font-weight:600;min-height:1.2em}
+.toast{position:fixed;left:50%;top:calc(16px + env(safe-area-inset-top,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:10px;font-weight:700;font-size:.9rem;z-index:30;pointer-events:none;max-width:85vw;text-align:center}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+<style>
+:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);box-sizing:border-box}
+body{margin:0;overscroll-behavior:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+[hidden]{display:none!important}
+html{background:var(--bg)}
+</style>
+<script src="config.js"></script>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+<div class="tipcard" id="tip" hidden></div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+(function(){
+"use strict";
+const $=(s,r=document)=>r.querySelector(s);
+const app=$("#app");
+const rnd=n=>Math.floor(Math.random()*n);
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=rnd(i+1);[a[i],a[j]]=[a[j],a[i]]}return a};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const TIP_COST=0.08; // score lost per revealed tip move
+const MM_COLORS=["#E5484D","#F2851A","#F5C518","#30A46C","#12A5C9","#3E63DD","#8E4EC6","#E93D82"];
+const MM_NAMES=["red","orange","yellow","green","cyan","blue","purple","pink"];
+
+/* ---------- Ratings ---------- */
+const GAMES={
+  sudoku:{name:"Sudoku",c:"var(--sdk)",desc:"Fewer clues as you climb"},
+  numbers:{name:"Number Match",c:"var(--num)",desc:"Tighter boards, fewer adds"},
+  wordle:{name:"Wordle",c:"var(--wrd)",desc:"Rarer words, then hard mode"},
+  mastermind:{name:"Mastermind",c:"var(--mm)",desc:"More pegs and colors as you climb"}
+};
+const RANKS=[[0,"Bronze"],[900,"Silver"],[1200,"Gold"],[1500,"Platinum"],[1800,"Diamond"],[2100,"Master"]];
+const rankOf=r=>{let n="Bronze";for(const[t,name] of RANKS) if(r>=t) n=name;return n};
+const KEY="eloArcade.v1",AKEY="eloArcade.account";
+const fresh=()=>({r:1000,games:0,wins:0,peak:1000,hist:[1000]});
+function normalize(d){d=d&&typeof d==="object"?d:{};const o={};for(const g in GAMES)o[g]=Object.assign(fresh(),d[g]||{});return o}
+function lsGet(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}}
+function lsSet(k,v){try{v==null?localStorage.removeItem(k):localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+let store=normalize(lsGet(KEY));
+function save(){lsSet(KEY,store);Acct.push()}
+function targetRating(g){return clamp(store[g].r+rnd(201)-100,400,2600)}
+function applyElo(g,puzzleR,S,mult=1,win=S>=.5){
+  const st=store[g],K=(st.games<10?48:28)*mult;
+  const E=1/(1+Math.pow(10,(puzzleR-st.r)/400));
+  const d=Math.round(K*(S-E));
+  const before=st.r;st.r=Math.max(100,st.r+d);st.games++;if(win)st.wins++;
+  st.peak=Math.max(st.peak,st.r);st.hist.push(st.r);if(st.hist.length>30)st.hist.shift();
+  save();return{before,after:st.r,d:st.r-before,E};
+}
+
+/* ---------- Accounts (username + password, synced through a small Supabase database) ---------- */
+const Acct=(()=>{
+  const CFG=window.ARCADE_CONFIG;const available=!!CFG;
+  const configured=!!(CFG&&CFG.supabaseUrl&&CFG.supabaseKey);
+  let a=lsGet(AKEY);let busy=false,timer=null;
+  function headers(){const h={"Content-Type":"application/json",apikey:CFG.supabaseKey};if(/^eyJ/.test(CFG.supabaseKey))h.Authorization="Bearer "+CFG.supabaseKey;return h}
+  async function rpc(fn,args){
+    let r;try{r=await fetch(CFG.supabaseUrl.replace(/\/+$/,"")+"/rest/v1/rpc/"+fn,{method:"POST",headers:headers(),body:JSON.stringify(args)})}
+    catch(e){throw new Error("Can't reach the server. Check your connection.")}
+    const t=await r.text();let j=null;try{j=t?JSON.parse(t):null}catch(e){}
+    if(!r.ok){const m=(j&&(j.message||j.msg))||("Server error "+r.status);const err=new Error(m);err.auth=/session expired/i.test(m);throw err}
+    return j;
+  }
+  function merge(server){ // per game, keep whichever copy has more games played
+    const s=normalize(server);let changed=false;
+    for(const g in GAMES){if(store[g].games>s[g].games){s[g]=store[g];changed=true}}
+    store=s;lsSet(KEY,store);return changed;
+  }
+  function set(v){a=v;lsSet(AKEY,a);refreshChip()}
+  async function doPush(){
+    if(!a||!configured)return;if(busy){a.pending=true;return}
+    busy=true;
+    try{await rpc("arcade_save",{p_token:a.token,p_progress:store});set(Object.assign(a,{pending:false,synced:Date.now()}))}
+    catch(e){if(e.auth){set(null);toast("Signed out. Log in again to sync.")}else set(Object.assign(a,{pending:true}))}
+    finally{busy=false}
+  }
+  function push(){if(!a)return;a.pending=true;lsSet(AKEY,a);clearTimeout(timer);timer=setTimeout(doPush,400)}
+  async function start(){
+    if(!a||!configured)return;
+    try{const j=await rpc("arcade_load",{p_token:a.token});const ch=merge(j.progress);set(Object.assign(a,{synced:Date.now(),pending:ch}));if(ch)doPush();if(!cur)showHome()}
+    catch(e){if(e.auth){set(null);toast("Signed out. Log in again to sync.")}}
+  }
+  async function enter(kind,user,pass){
+    const j=await rpc(kind==="new"?"arcade_register":"arcade_login",{p_username:user,p_password:pass});
+    set({token:j.token,username:j.username,pending:false});
+    const ch=merge(j.progress);if(ch)await doPush();else set(Object.assign(a,{synced:Date.now()}));
+  }
+  async function logout(){const t=a&&a.token;set(null);store=normalize(null);lsSet(KEY,store);for(const k in sessions)delete sessions[k];
+    if(t)try{await rpc("arcade_logout",{p_token:t})}catch(e){}}
+  function refreshChip(){const b=$("#acctB");if(!b)return;b.innerHTML=chipHTML()}
+  function chipHTML(){if(!a)return`<i></i>Sign in`;return`<i class="${a.pending?"wait":"on"}"></i>${esc(a.username)}`}
+  addEventListener("online",()=>{if(a&&a.pending)doPush()});
+  return{available,configured,get user(){return a},push,start,enter,logout,chipHTML};
+})();
+
+function openAccount(){
+  const sc=document.createElement("div");sc.className="scrim";
+  const close=()=>sc.remove();
+  sc.onclick=e=>{if(e.target===sc)close()};
+  const u=Acct.user;
+  if(u){
+    const when=u.synced?new Date(u.synced).toLocaleString([], {dateStyle:"medium",timeStyle:"short"}):"not yet";
+    sc.innerHTML=`<div class="sheet" role="dialog" aria-label="Account"><h3>${esc(u.username)}</h3>
+      <p>Your ratings are saved to this account after every game, so you can log in on any phone and carry on.</p>
+      <p>${u.pending?"<b>Waiting to sync.</b> Your latest games will upload when you're back online.":`Last synced <b>${esc(when)}</b>.`}</p>
+      <div class="btns"><button class="btn" id="lo">Log out</button><button class="btn pri" id="cl">Done</button></div></div>`;
+    $("#cl",sc).onclick=close;
+    $("#lo",sc).onclick=async()=>{await Acct.logout();close();showHome();toast("Logged out")};
+  }else if(!Acct.configured){
+    sc.innerHTML=`<div class="sheet" role="dialog" aria-label="Account"><h3>Accounts</h3>
+      <p>Accounts need a free database before anyone can register. Follow <b>SETUP.md</b> in the app folder: create a Supabase project, run one SQL script, then paste two values into <b>config.js</b>.</p>
+      <p>Until then your ratings are saved on this phone.</p>
+      <div class="btns"><button class="btn pri" id="cl">OK</button></div></div>`;
+    $("#cl",sc).onclick=close;
+  }else{
+    sc.innerHTML=`<form class="sheet" role="dialog" aria-label="Sign in" id="af" novalidate><h3>Sign in</h3>
+      <p>Log in to save your ratings and play on any phone. Ratings already earned here are added to the account.</p>
+      <div class="field"><label for="au">Username</label><input id="au" autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="20" placeholder="3–20 letters, numbers or _"></div>
+      <div class="field"><label for="ap">Password</label><input id="ap" type="password" autocomplete="current-password" placeholder="At least 6 characters"></div>
+      <p class="err" id="ae" role="alert"></p>
+      <div class="btns"><button type="button" class="btn" id="reg">Create account</button><button type="submit" class="btn pri" id="lg">Log in</button></div></form>`;
+    const f=$("#af",sc),err=$("#ae",sc);
+    const go=async kind=>{
+      const user=$("#au",sc).value.trim().toLowerCase(),pass=$("#ap",sc).value;
+      if(!/^[a-z0-9_]{3,20}$/.test(user)){err.textContent="Username must be 3–20 letters, numbers or _.";return}
+      if(pass.length<6){err.textContent="Password must be at least 6 characters.";return}
+      err.textContent="";sc.querySelectorAll(".btn").forEach(b=>b.disabled=true);
+      try{await Acct.enter(kind,user,pass);close();showHome();toast(kind==="new"?"Account created":"Logged in")}
+      catch(e){err.textContent=e.message}
+      finally{sc.querySelectorAll(".btn").forEach(b=>b.disabled=false)}
+    };
+    f.onsubmit=e=>{e.preventDefault();go("login")};
+    $("#reg",sc).onclick=()=>{$("#ap",sc).setAttribute("autocomplete","new-password");go("new")};
+    setTimeout(()=>$("#au",sc).focus(),50);
+  }
+  document.body.appendChild(sc);
+}
+
+/* ---------- Shell ---------- */
+const sessions={};let cur=null;
+function toast(msg,ms=1600){const t=$("#toast");t.textContent=msg;t.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>t.hidden=true,ms)}
+function spark(h,c){if(h.length<2)return"";const w=84,ht=22,mn=Math.min(...h),mx=Math.max(...h),sp=Math.max(mx-mn,40);
+  const pts=h.map((v,i)=>[i/(h.length-1)*w,ht-2-(v-mn)/sp*(ht-4)]);
+  return `<svg class="spark" width="${w}" height="${ht}" viewBox="0 0 ${w} ${ht}" aria-hidden="true"><polyline fill="none" stroke="${c}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" points="${pts.map(p=>p.map(n=>n.toFixed(1)).join(",")).join(" ")}"/><circle cx="${pts.at(-1)[0].toFixed(1)}" cy="${pts.at(-1)[1].toFixed(1)}" r="2.6" fill="${c}"/></svg>`}
+const glyphs={
+  sudoku:`<div class="g-sdk">${[5,"",3,"",7,"",8,"",1].map(v=>`<i>${v}</i>`).join("")}</div>`,
+  numbers:`<div class="g-num"><b>3</b><b>7</b></div>`,
+  mastermind:`<div class="g-mm">${[0,5,3,7].map(c=>`<i style="background:${MM_COLORS[c]}"></i>`).join("")}</div>`,
+  wordle:`<div class="g-wrd">${["var(--ok)","var(--absent)","var(--warn)","var(--absent)","var(--ok)","var(--ok)","var(--warn)","var(--ok)","var(--absent)"].map(c=>`<i style="background:${c}"></i>`).join("")}</div>`
+};
+function showHome(){
+  sdkPause();cur=null;hideTip();document.documentElement.style.removeProperty("--acc");
+  app.innerHTML=`<header class="brand"><div class="brandrow"><h1><span>Puzzle</span> <span>Ar</span><span>cade</span></h1>
+  ${Acct.available?`<button class="acctB" id="acctB" aria-label="Account">${Acct.chipHTML()}</button>`:""}</div>
+  <p>Four puzzles, four separate ratings. Every new puzzle is picked close to your current rating.</p></header>
+  <section class="cabs">${Object.entries(GAMES).map(([g,G])=>{const s=store[g];const live=sessions[g]&&!sessions[g].done;
+    return `<button class="cab" data-g="${g}" style="--c:${G.c}" aria-label="Play ${G.name}, rating ${s.r}">
+      <div class="glyph">${glyphs[g]}</div>
+      <div><h2>${G.name}</h2><div class="meta">${s.games?`${s.games} played · ${Math.round(s.wins/s.games*100)}% solved`:G.desc}</div>${spark(s.hist,G.c)}</div>
+      <div class="rt"><span class="rnum">${s.r}</span><span class="chip${live?" live":""}">${live?"Resume":rankOf(s.r)}</span></div></button>`}).join("")}</section>
+  <section class="howto">
+    <div><b>How ratings work.</b> Everyone starts at 1000. Solving a puzzle rated above you earns more; failing one rated below you costs more. Your first 10 games in each puzzle move faster.</div>
+    <div><b>What the rating changes.</b> Sudoku removes clues, and your Sudoku result depends on time and mistakes: beat par and you climb faster. Number Match deals tighter boards and fewer adds. Wordle draws rarer words and switches on hard mode from 1700. Mastermind adds repeats, then more pegs and colors; cracking the code in fewer guesses scores higher.</div>
+    <div><b>Tips.</b> Tap Tip in any game. The strategy is free. Revealing the exact move takes ${Math.round(TIP_COST*100)}% off that game's score.</div>
+    <div class="ladder">${RANKS.map(([t,n])=>`<span>${n} ${t||"<900"}${t?"+":""}</span>`).join("")}</div>
+  </section>`;
+  app.querySelectorAll(".cab").forEach(b=>b.onclick=()=>openGame(b.dataset.g));
+  const ab=$("#acctB");if(ab)ab.onclick=openAccount;
+}
+function openGame(g,fresh){
+  sdkPause();hideTip();
+  document.documentElement.style.setProperty("--acc",GAMES[g].c);
+  if(fresh||!sessions[g]||sessions[g].done) sessions[g]=null;
+  cur=g;
+  app.innerHTML=`<div class="top"><button class="back" id="back">‹ Arcade</button><h2>${GAMES[g].name}</h2><button class="help" id="help" aria-label="How to play">?</button></div>
+  <div class="vs"><div><small>You</small><strong id="youR">${store[g].r}</strong></div>
+  <div class="mid"><small id="rankL">${rankOf(store[g].r)}</small></div>
+  <div class="right"><small>Puzzle</small><strong id="puzR">…</strong></div></div>
+  <div class="stage" id="stage"><div class="loading">Building a puzzle at your level…</div></div>`;
+  $("#back").onclick=showHome;$("#help").onclick=()=>openRules(g);
+  setTimeout(()=>{if(cur!==g)return;if(!sessions[g]) sessions[g]=MAKERS[g]();$("#puzR").textContent=sessions[g].puzzleR;RENDER[g]();if(g==="sudoku")sdkStart()},30);
+}
+function giveUpButton(onGive){
+  const b=document.createElement("button");b.className="giveup";b.textContent="Give up";
+  b.onclick=()=>{if(b.classList.contains("arm")){onGive();return}b.classList.add("arm");b.textContent="Tap again to give up";
+    setTimeout(()=>{b.classList.remove("arm");b.textContent="Give up"},3000)};
+  return b;
+}
+const tipNote=s=>s.tipsUsed?` ${s.tipsUsed} tip move${s.tipsUsed>1?"s":""} revealed.`:"";
+function finish(g,win,S,detail,mult=1){
+  const s=sessions[g];if(s.done)return;s.done=true;hideTip();if(g==="sudoku")sdkPause();
+  const res=applyElo(g,s.puzzleR,S,mult,win);
+  const sc=document.createElement("div");sc.className="scrim";
+  const sign=res.d>0?"+":res.d<0?"−":"±";
+  const newRank=rankOf(res.after)!==rankOf(res.before)?`<p><b>New rank: ${rankOf(res.after)}</b></p>`:"";
+  sc.innerHTML=`<div class="sheet" role="dialog" aria-label="Result"><h3>${win?"Solved":"Not this time"}</h3><p>${detail}${tipNote(s)}</p>
+    <div class="delta"><strong class="${res.d>=0?"up":"down"}">${sign}${Math.abs(res.d)}</strong><span>${res.before} → ${res.after}</span></div>${newRank}
+    <p style="font-size:.82rem">Puzzle ${s.puzzleR} vs you ${res.before}: expected score ${Math.round(res.E*100)}%, you scored ${Math.round(S*100)}%.${mult>1?` Speed bonus ×${mult.toFixed(1)}.`:""}</p>
+    <div class="btns"><button class="btn" id="toHome">Arcade</button><button class="btn pri" id="next">Next puzzle</button></div></div>`;
+  setTimeout(()=>{document.body.appendChild(sc);$("#next",sc).focus()},win?500:350);
+  $("#toHome",sc).onclick=()=>{sc.remove();showHome()};
+  $("#next",sc).onclick=()=>{sc.remove();openGame(g,true)};
+  const y=$("#youR");if(y){y.textContent=res.after;$("#rankL").textContent=rankOf(res.after)}
+}
+
+/* ---------- Rules (the ? button) ---------- */
+const OK='<span class="rk ok" aria-label="allowed">✓</span>',NO='<span class="rk no" aria-label="not allowed">✕</span>';
+const T=(v,cls="")=>`<b class="dt ${cls}">${v}</b>`;
+const rule=(vis,txt)=>`<div class="rl"><div class="rv">${vis}</div><div class="rt">${txt}</div></div>`;
+function rulesHTML(g){
+  const s=sessions[g];
+  if(g==="sudoku"){
+    let grid="";for(let r=0;r<9;r++)for(let c=0;c<9;c++){const inBox=r>=3&&r<6&&c>=3&&c<6;grid+=`<i class="${r===1?"hr":c===7?"hc":inBox?"hb":""}"></i>`}
+    return rule(`<div class="mini9">${grid}</div>`,"<b>1–9 once</b> in every row, column and 3×3 box")
+     +rule(`<div class="dstrip">${T(5,"sdkc sel")}<span class="ar">→</span>${[1,2,3].map(n=>T(n,"key")).join("")}</div>`,"Tap a cell, then a number")
+     +rule(`<div class="dnotes">${[1,"",3,"","","",7,"",9].map(n=>`<span>${n}</span>`).join("")}</div>`,"<b>✎ Notes</b> pencil in options")
+     +rule(`<div class="dstrip">${T(4,"bad")}${T(4,"bad")}${T(4,"bad")}</div>`,"3 mistakes ends the game")
+     +rule(`<div class="dclock">${fmtT(s?s.par:300)}</div>`,"Beat par time for a <b>bigger</b> rating gain");
+  }
+  if(g==="numbers"){
+    let nb="";for(let i=0;i<9;i++)nb+=T(i===4?"6":"",i===4?"sel":"ring");
+    return rule(`<div class="dstrip">${T(3)}${T(3)}</div>${OK}`,"Same number")
+     +rule(`<div class="dstrip">${T(3)}${T(7)}</div>${OK}`,"Adds up to 10")
+     +rule(`<div class="dstrip">${T(3)}${T(5)}</div>${NO}`,"Anything else")
+     +rule(`<div class="d3x3">${nb}</div>`,"Neighbors in <b>any direction</b>, diagonals too")
+     +rule(`<div class="dstrip">${T(4)}${T("","gone")}${T("","gone")}${T(4)}</div>${OK}`,"Cleared cells don't block")
+     +rule(`<div class="dwrap"><div class="dstrip"><span class="dots">…</span>${T(2)}</div><div class="dstrip">${T(8)}<span class="dots">…</span></div></div>${OK}`,"A row's end links to the next row's start")
+     +rule(`<div class="dstrip"><span class="dbtn">＋ Add</span></div>`,"Copies the numbers left to the end")
+     +rule(`<div class="dstrip">${T("","gone")}${T("","gone")}${T("","gone")}<span class="ar">↑</span></div>`,"Empty rows disappear. Clear the board to win");
+  }
+  if(g==="wordle"){
+    const ex=["c","r","a","n","e"],cl=["c","a","p","a","a"];
+    return `<div class="dword">${ex.map((ch,i)=>`<span class="wt ${cl[i]}" style="animation:none">${ch}</span>`).join("")}</div>`
+     +rule(`<span class="wt c" style="animation:none">c</span>`,"Right letter, <b>right spot</b>")
+     +rule(`<span class="wt p" style="animation:none">a</span>`,"In the word, <b>wrong spot</b>")
+     +rule(`<span class="wt a" style="animation:none">r</span>`,"Not in the word")
+     +rule(`<div class="dclock">6×</div>`,"6 tries. Only real words count")
+     +(s&&s.hard?rule(`<span class="badge">Hard</span>`,"Green letters stay put. Yellow letters must be reused"):"");
+  }
+  if(g==="mastermind"){
+    const L=s?s.L:4,C=s?s.C:6,ex=[0,3,1,5].slice(0,4);
+    return rule(`<div class="dstrip">${[...Array(L)].map(()=>`<span class="peg dpeg hid">?</span>`).join("")}</div>`,`Crack the hidden code. <b>${L} pegs · ${C} colors</b>`)
+     +rule(`<div class="dstrip">${ex.map(c=>`<span class="peg dpeg" style="background:${MM_COLORS[c]}">${c+1}</span>`).join("")}<span class="pins" style="--L:4"><span class="pin ex"></span><span class="pin cl"></span><span class="pin cl"></span><span class="pin"></span></span></div>`,"Each guess gets pins")
+     +rule(`<span class="pin ex big"></span>`,"Right color, <b>right spot</b>")
+     +rule(`<span class="pin cl big"></span>`,"Right color, <b>wrong spot</b>")
+     +rule(`<span class="pin ex big"></span><span class="ar">→</span><span class="peg dpeg hid">?</span>`,"Pins don't say <b>which</b> peg they mean")
+     +rule(`<div class="dstrip">${[0,0].map(c=>`<span class="peg dpeg" style="background:${MM_COLORS[c]}">${c+1}</span>`).join("")}</div>${s&&!s.dup?NO:OK}`,s&&!s.dup?"No repeated colors at this level":"Colors can repeat")
+     +rule(`<div class="dclock">${s?s.max:10}×</div>`,`Fewer guesses than par ${s?s.par:5} = bigger gain`);
+  }
+  return"";
+}
+function openRules(g){
+  if(g==="sudoku")sdkPause();
+  const sc=document.createElement("div");sc.className="scrim";
+  sc.innerHTML=`<div class="sheet rules" role="dialog" aria-label="How to play"><h3>How to play</h3>${rulesHTML(g)}
+    ${rule(`<span class="tool tipB dtip">Tip</span>`,`Strategy free · move −${Math.round(TIP_COST*100)}%`)}
+    <div class="btns"><button class="btn pri" id="rOk">Got it</button></div></div>`;
+  const close=()=>{sc.remove();if(g==="sudoku"&&cur==="sudoku")sdkStart()};
+  sc.onclick=e=>{if(e.target===sc)close()};$("#rOk",sc).onclick=close;
+  document.body.appendChild(sc);$("#rOk",sc).focus();
+}
+
+/* ---------- Tip card: step 1 strategy, step 2 the move ---------- */
+let tipState=null;
+function hideTip(){const t=$("#tip");if(t){t.hidden=true;t.innerHTML=""}if(tipState&&tipState.onClose)tipState.onClose();tipState=null}
+function showTip(tip){
+  // tip = {title, strategy, move, onReveal(), action:{label,fn}, free:bool}
+  const s=sessions[cur];tipState={...tip,stage:1};
+  const t=$("#tip");t.hidden=false;
+  const draw=()=>{
+    const st=tipState;if(!st)return;
+    if(st.stage===1){
+      t.innerHTML=`<div class="tipin" role="dialog" aria-label="Tip"><div class="tiphead"><span class="tipstep">Strategy</span><button class="x" id="tx" aria-label="Close tip">×</button></div>
+       <h4>${st.title}</h4><p>${st.strategy}</p>
+       <div class="btns">${st.move?`<button class="btn pri" id="tm">Show the move${st.free?"":` (−${Math.round(TIP_COST*100)}%)`}</button>`:`<button class="btn pri" id="tc">Got it</button>`}</div></div>`;
+      const tm=$("#tm",t);if(tm)tm.onclick=()=>{st.stage=2;if(!st.free&&!st.counted){s.tipsUsed=(s.tipsUsed||0)+1;st.counted=true}st.onReveal&&st.onReveal();draw()};
+    }else{
+      t.innerHTML=`<div class="tipin" role="dialog" aria-label="Tip"><div class="tiphead"><span class="tipstep">Next move</span><button class="x" id="tx" aria-label="Close tip">×</button></div>
+       <p>${st.move}</p>
+       <div class="btns">${st.action?`<button class="btn" id="tc">Close</button><button class="btn pri" id="ta">${st.action.label}</button>`:`<button class="btn pri" id="tc">Got it</button>`}</div></div>`;
+      const ta=$("#ta",t);if(ta)ta.onclick=()=>{const fn=st.action.fn;hideTip();fn()};
+    }
+    const tc=$("#tc",t);if(tc)tc.onclick=hideTip;$("#tx",t).onclick=hideTip;
+  };
+  draw();
+}
+function tipButton(fn){const b=document.createElement("button");b.className="tool tipB";b.textContent="Tip";b.onclick=()=>{if(sessions[cur]&&!sessions[cur].done)fn()};return b}
+
+/* ---------- Sudoku ---------- */
+const pop=m=>{let c=0;while(m){m&=m-1;c++}return c};
+const bits=m=>{const o=[];for(let d=1;d<=9;d++)if(m&(1<<d))o.push(d);return o};
+function cand(g,i){const r=(i/9)|0,c=i%9,br=r-r%3,bc=c-c%3;let u=0;
+  for(let k=0;k<9;k++){u|=1<<g[r*9+k];u|=1<<g[k*9+c];u|=1<<g[(br+((k/3)|0))*9+bc+k%3]}return(~u)&0x3FE}
+function pick(g){let best=-1,bm=0,bc=10;for(let i=0;i<81;i++)if(!g[i]){const m=cand(g,i),n=pop(m);if(!n)return{dead:true};if(n<bc){bc=n;best=i;bm=m;if(n===1)break}}return{best,bm}}
+function countSol(g,limit){const p=pick(g);if(p.dead)return 0;if(p.best<0)return 1;let cnt=0;
+  for(let d=1;d<=9&&cnt<limit;d++)if(p.bm&(1<<d)){g[p.best]=d;cnt+=countSol(g,limit-cnt)}g[p.best]=0;return cnt}
+function fillRandom(g){const p=pick(g);if(p.dead)return false;if(p.best<0)return true;
+  const ds=shuffle([1,2,3,4,5,6,7,8,9].filter(d=>p.bm&(1<<d)));for(const d of ds){g[p.best]=d;if(fillRandom(g))return true}g[p.best]=0;return false}
+// Par: the time a player rated at this puzzle's level should need. Matching par scores 50%.
+const sdkPar=clues=>150+7*(81-clues);
+const fmtT=sec=>{sec=Math.max(0,Math.floor(sec));return`${Math.floor(sec/60)}:${String(sec%60).padStart(2,"0")}`};
+const sdkSecs=s=>(s.elapsed+(s.runAt?Date.now()-s.runAt:0))/1000;
+let sdkTimer=null;
+function sdkStart(){const s=sessions.sudoku;if(!s||s.done||cur!=="sudoku"||document.hidden)return;if(!s.runAt)s.runAt=Date.now();clearInterval(sdkTimer);sdkTimer=setInterval(sdkTick,500);sdkTick()}
+function sdkPause(){clearInterval(sdkTimer);sdkTimer=null;const s=sessions.sudoku;if(s&&s.runAt){s.elapsed+=Date.now()-s.runAt;s.runAt=null}}
+function sdkTick(){const s=sessions.sudoku,el=$("#sdkTime");if(!s||!el)return;const t=sdkSecs(s);el.textContent=fmtT(t);el.style.color=t>s.par?"var(--bad)":""}
+document.addEventListener("visibilitychange",()=>{if(document.hidden)sdkPause();else if(cur==="sudoku")sdkStart()});
+// Score from pace and mistakes. pace = par / time. Twice as fast as par ≈ 85%, half as fast ≈ 15%.
+function sdkScore(s){const t=Math.max(20,sdkSecs(s)),pace=s.par/t;
+  const S=clamp(clamp(0.5+0.35*Math.log2(pace),0.02,1)-0.15*s.mistakes-TIP_COST*s.tipsUsed,0.02,1);
+  const mult=s.mistakes===0&&!s.tipsUsed?clamp(pace,1,4):clamp(pace,1,2); // fast clean solves move the rating up to 4× faster
+  return{S,mult,t,pace}}
+function makeSudoku(){
+  const R=targetRating("sudoku");const target=clamp(Math.round(50-(R-600)/55),23,50);
+  const sol=new Array(81).fill(0);fillRandom(sol);const puz=sol.slice();let n=81;
+  for(const i of shuffle([...Array(81).keys()])){if(n<=target)break;const v=puz[i];puz[i]=0;if(countSol(puz.slice(),2)!==1)puz[i]=v;else n--}
+  return{sol,puz,cur:puz.slice(),notes:new Array(81).fill(0),sel:-1,mistakes:0,notesMode:false,clues:n,puzzleR:600+(50-n)*55,done:false,tipsUsed:0,hl:null,elapsed:0,runAt:null,par:sdkPar(n)};
+}
+// Units for the tip solver
+const UNITS=[];
+for(let r=0;r<9;r++)UNITS.push({kind:"row",n:r+1,cells:[...Array(9)].map((_,c)=>r*9+c)});
+for(let c=0;c<9;c++)UNITS.push({kind:"column",n:c+1,cells:[...Array(9)].map((_,r)=>r*9+c)});
+for(let b=0;b<9;b++){const br=((b/3)|0)*3,bc=(b%3)*3;UNITS.push({kind:"box",n:b+1,cells:[...Array(9)].map((_,k)=>(br+((k/3)|0))*9+bc+k%3)})}
+const BOXES=UNITS.filter(u=>u.kind==="box"),LINES=UNITS.filter(u=>u.kind!=="box");
+const cellName=i=>`row ${((i/9)|0)+1}, column ${i%9+1}`;
+const uName=u=>`${u.kind} ${u.n}`;
+const boxOf=i=>((((i/9)|0)/3)|0)*3+(((i%9)/3)|0);
+function findSingle(g,cm){
+  for(const u of UNITS){const e=u.cells.filter(i=>!g[i]);if(e.length===1&&pop(cm[e[0]])===1)return{type:"full",i:e[0],d:bits(cm[e[0]])[0],unit:u}}
+  for(let i=0;i<81;i++)if(!g[i]&&pop(cm[i])===1)return{type:"naked",i,d:bits(cm[i])[0]};
+  for(const u of [...BOXES,...LINES])for(let d=1;d<=9;d++){
+    if(u.cells.some(i=>g[i]===d))continue;const spots=u.cells.filter(i=>!g[i]&&(cm[i]&(1<<d)));
+    if(spots.length===1)return{type:"hidden",i:spots[0],d,unit:u}}
+  return null;
+}
+function findElimination(g,cm){
+  // Pointing: digit inside a box confined to one row/column
+  for(const b of BOXES)for(let d=1;d<=9;d++){
+    const sp=b.cells.filter(i=>!g[i]&&(cm[i]&(1<<d)));if(sp.length<2)continue;
+    for(const line of LINES){if(!sp.every(i=>line.cells.includes(i)))continue;
+      const rm=line.cells.filter(i=>!g[i]&&!b.cells.includes(i)&&(cm[i]&(1<<d)));
+      if(rm.length){rm.forEach(i=>cm[i]&=~(1<<d));return{type:"pointing",d,box:b,line,rm,area:sp}}}}
+  // Claiming: digit inside a row/column confined to one box
+  for(const line of LINES)for(let d=1;d<=9;d++){
+    const sp=line.cells.filter(i=>!g[i]&&(cm[i]&(1<<d)));if(sp.length<2)continue;
+    const b=BOXES[boxOf(sp[0])];if(!sp.every(i=>b.cells.includes(i)))continue;
+    const rm=b.cells.filter(i=>!g[i]&&!line.cells.includes(i)&&(cm[i]&(1<<d)));
+    if(rm.length){rm.forEach(i=>cm[i]&=~(1<<d));return{type:"claiming",d,box:b,line,rm,area:sp}}}
+  // Naked pair
+  for(const u of UNITS){const e=u.cells.filter(i=>!g[i]&&pop(cm[i])===2);
+    for(let a=0;a<e.length;a++)for(let b=a+1;b<e.length;b++){if(cm[e[a]]!==cm[e[b]])continue;const m=cm[e[a]];
+      const rm=u.cells.filter(i=>!g[i]&&i!==e[a]&&i!==e[b]&&(cm[i]&m));
+      if(rm.length){rm.forEach(i=>cm[i]&=~m);return{type:"nakedpair",unit:u,pair:[e[a],e[b]],ds:bits(m),rm,area:[e[a],e[b]]}}}}
+  // Hidden pair
+  for(const u of UNITS){const where={};for(let d=1;d<=9;d++){if(u.cells.some(i=>g[i]===d))continue;where[d]=u.cells.filter(i=>!g[i]&&(cm[i]&(1<<d)))}
+    const ds=Object.keys(where).map(Number).filter(d=>where[d].length===2);
+    for(let a=0;a<ds.length;a++)for(let b=a+1;b<ds.length;b++){const A=where[ds[a]],B=where[ds[b]];if(A[0]!==B[0]||A[1]!==B[1])continue;
+      const m=(1<<ds[a])|(1<<ds[b]);if(A.every(i=>cm[i]===m))continue;A.forEach(i=>cm[i]&=m);
+      return{type:"hiddenpair",unit:u,pair:A,ds:[ds[a],ds[b]],area:A}}}
+  return null;
+}
+function sudokuTip(s){
+  const wrong=[];for(let i=0;i<81;i++)if(s.cur[i]&&s.cur[i]!==s.sol[i])wrong.push(i);
+  if(wrong.length)return{title:"Fix a wrong number first",strategy:"Every later deduction builds on the numbers already on the board, so a wrong one leads you astray. Red numbers don't fit the solution.",
+    move:`Clear the ${s.cur[wrong[0]]} at ${cellName(wrong[0])}.`,cell:wrong[0],area:[],free:true,action:{label:"Clear it",fn:()=>{s.sel=wrong[0];sdkErase()}}};
+  const g=s.cur.slice(),cm=g.map((v,i)=>v?0:cand(g,i));const elims=[];
+  let single=null;
+  for(let k=0;k<40;k++){single=findSingle(g,cm);if(single)break;const e=findElimination(g,cm);if(!e)break;elims.push(e)}
+  if(!single){
+    let best=-1,bc=10;for(let i=0;i<81;i++)if(!g[i]&&pop(cm[i])<bc){bc=pop(cm[i]);best=i}
+    return{title:"Advanced position",strategy:`The basic techniques (singles, pointing, pairs) are stuck here. Strong players now look for an X-Wing or a chain. A practical way in: the cell at ${cellName(best)} has only ${bc} options left.`,
+      move:`${cellName(best)[0].toUpperCase()+cellName(best).slice(1)} is ${s.sol[best]}.`,cell:best,d:s.sol[best],area:[],action:{label:"Place it",fn:()=>placeTip(s,best,s.sol[best])}};
+  }
+  const {i,d}=single;
+  const names={full:"Last empty cell",naked:"Naked single",hidden:"Hidden single"};
+  let title=names[single.type],strategy="",move="";
+  const area=single.unit?single.unit.cells:[];
+  if(single.type==="full"){strategy=`Look at ${uName(single.unit)}. It has just one empty cell left, so that cell gets the one digit the ${single.unit.kind} is missing.`;
+    move=`${cellName(i)} is ${d}, the only digit ${uName(single.unit)} is missing.`}
+  else if(single.type==="naked"){const r=((i/9)|0)+1;strategy=`One empty cell in row ${r} can only hold one digit. For each empty cell, rule out every digit already in its row, column and box.`;
+    move=`${cellName(i)} must be ${d}. Its row, column and box already hold every other digit.`}
+  else{strategy=`Look at ${uName(single.unit)}. One of its missing digits fits in only one cell. Pick a missing digit and check where its other copies block it.`;
+    move=`In ${uName(single.unit)}, ${d} can only go in ${cellName(i)}. Every other empty cell there sees a ${d} in its row, column or box.`}
+  if(elims.length){
+    const e=elims[0];const why=elimText(e);
+    const en={pointing:"Pointing pair",claiming:"Box/line reduction",nakedpair:"Naked pair",hiddenpair:"Hidden pair"}[e.type];
+    title=`${en}, then a ${names[single.type].toLowerCase()}`;
+    strategy=`${elimStrategy(e)} That removes options elsewhere, and a ${names[single.type].toLowerCase()} appears.`;
+    move=`${elims.slice(0,3).map(elimText).join(" ")}${elims.length>3?" A few more eliminations follow.":""} Now ${move.charAt(0).toLowerCase()+move.slice(1)}`;
+    return{title,strategy,move,cell:i,d,area:elims[0].area,action:{label:"Place it",fn:()=>placeTip(s,i,d)}};
+  }
+  return{title,strategy,move:move.charAt(0).toUpperCase()+move.slice(1),cell:i,d,area,action:{label:"Place it",fn:()=>placeTip(s,i,d)}};
+}
+function elimStrategy(e){
+  if(e.type==="pointing")return`In ${uName(e.box)}, all the spots for one digit line up in a single ${e.line.kind}. That digit can't appear anywhere else in that ${e.line.kind}.`;
+  if(e.type==="claiming")return`In ${uName(e.line)}, all the spots for one digit sit inside one box. That digit can't go anywhere else in that box.`;
+  if(e.type==="nakedpair")return`In ${uName(e.unit)}, two cells share the same two options. Those two digits must go in those two cells, so no other cell in the ${e.unit.kind} can use them.`;
+  return`In ${uName(e.unit)}, two digits each fit in only the same two cells. Those cells must hold those two digits, so their other options go.`;
+}
+function elimText(e){
+  if(e.type==="pointing")return`In ${uName(e.box)}, ${e.d} can only be in ${uName(e.line)}, so ${e.d} is ruled out of the rest of ${uName(e.line)}.`;
+  if(e.type==="claiming")return`In ${uName(e.line)}, ${e.d} can only be in ${uName(e.box)}, so ${e.d} is ruled out of the rest of that box.`;
+  if(e.type==="nakedpair")return`${cellName(e.pair[0])} and ${cellName(e.pair[1])} can only be ${e.ds.join(" or ")}, so ${e.ds.join(" and ")} are ruled out of the rest of ${uName(e.unit)}.`;
+  return`In ${uName(e.unit)}, ${e.ds.join(" and ")} only fit in ${cellName(e.pair[0])} and ${cellName(e.pair[1])}, so those cells hold nothing else.`;
+}
+function placeTip(s,i,d){s.sel=i;s.notesMode=false;sdkInput(d)}
+function renderSudoku(){
+  const s=sessions.sudoku,st=$("#stage");
+  st.innerHTML=`<div class="info"><span>Clues <b>${s.clues}</b></span><span>Time <b id="sdkTime">${fmtT(sdkSecs(s))}</b> / par ${fmtT(s.par)}</span><span>Mistakes <b id="mis">${s.mistakes}</b>/3</span></div>
+   <div class="sgrid" id="sg" role="grid" aria-label="Sudoku board"></div>
+   <div class="tools" id="tl"><button class="tool${s.notesMode?" on":""}" id="notesB" aria-pressed="${s.notesMode}">✎ Notes</button><button class="tool" id="eraseB">⌫ Erase</button></div>
+   <div class="pad" id="pad"></div>`;
+  $("#tl").appendChild(tipButton(()=>{const t=sudokuTip(s);s.hl={area:t.area||[],cell:null};drawSudoku();
+    showTip({...t,onReveal:()=>{s.hl={area:t.area||[],cell:t.cell};drawSudoku()},onClose:()=>{s.hl=null;drawSudoku()}})}));
+  st.appendChild(giveUpButton(()=>finish("sudoku",false,0,"You stepped away from this one.")));
+  $("#notesB").onclick=()=>{s.notesMode=!s.notesMode;drawSudoku()};
+  $("#eraseB").onclick=()=>sdkErase();
+  drawSudoku();
+}
+function drawSudoku(){
+  const s=sessions.sudoku,sg=$("#sg");if(!sg||!s)return;
+  const sv=s.sel>=0?s.cur[s.sel]:0,sr=(s.sel/9)|0,scc=s.sel%9,sb=s.sel>=0?(((sr/3)|0)*3+((scc/3)|0)):-1;
+  const hl=s.hl;let h="";
+  for(let i=0;i<81;i++){const r=(i/9)|0,c=i%9,b=((r/3)|0)*3+((c/3)|0),v=s.cur[i];
+    const cls=["sc"];if(s.puz[i])cls.push("given");else if(v)cls.push(v===s.sol[i]?"user":"wrong");
+    if(hl&&hl.cell===i)cls.push("hint");
+    if(hl&&hl.area.includes(i))cls.push("area");
+    else if(i===s.sel)cls.push("sel");else if(sv&&v===sv)cls.push("same");else if(s.sel>=0&&(r===sr||c===scc||b===sb))cls.push("peer");
+    let inner=v||"";if(!v&&s.notes[i]){inner=`<span class="notes">${[1,2,3,4,5,6,7,8,9].map(d=>`<span>${s.notes[i]&(1<<d)?d:""}</span>`).join("")}</span>`}
+    h+=`<button class="${cls.join(" ")}" data-i="${i}" aria-label="Row ${r+1} column ${c+1}${v?", "+v:""}">${inner}</button>`}
+  sg.innerHTML=h;sg.querySelectorAll(".sc").forEach(b=>b.onclick=()=>{s.sel=+b.dataset.i;drawSudoku()});
+  const counts=new Array(10).fill(0);for(let i=0;i<81;i++)if(s.cur[i]&&s.cur[i]===s.sol[i])counts[s.cur[i]]++;
+  $("#pad").innerHTML=[1,2,3,4,5,6,7,8,9].map(d=>`<button data-d="${d}" ${counts[d]>=9?"disabled":""}>${d}<small>${9-counts[d]}</small></button>`).join("");
+  $("#pad").querySelectorAll("button").forEach(b=>b.onclick=()=>sdkInput(+b.dataset.d));
+  const nb=$("#notesB");nb.classList.toggle("on",s.notesMode);nb.setAttribute("aria-pressed",s.notesMode);
+  $("#mis").textContent=s.mistakes;
+}
+function sdkInput(d){
+  const s=sessions.sudoku;if(s.done||s.sel<0||s.puz[s.sel])return;const i=s.sel;
+  if(s.notesMode){if(s.cur[i])return;s.notes[i]^=1<<d;drawSudoku();return}
+  if(s.cur[i]===d)return;s.cur[i]=d;s.notes[i]=0;
+  if(d!==s.sol[i]){s.mistakes++;drawSudoku();if(s.mistakes>=3)finish("sudoku",false,0,"Three mistakes ends the puzzle.");else toast(`Mistake ${s.mistakes} of 3`);return}
+  const r=(i/9)|0,c=i%9,br=r-r%3,bc=c-c%3;
+  for(let k=0;k<9;k++){s.notes[r*9+k]&=~(1<<d);s.notes[k*9+c]&=~(1<<d);s.notes[(br+((k/3)|0))*9+bc+k%3]&=~(1<<d)}
+  drawSudoku();
+  if(s.cur.every((v,j)=>v===s.sol[j])){sdkPause();const r=sdkScore(s);
+    finish("sudoku",true,r.S,`Solved in <b>${fmtT(r.t)}</b> (par ${fmtT(s.par)}) with ${s.mistakes?`${s.mistakes} mistake${s.mistakes>1?"s":""}`:"no mistakes"}.`,r.mult)}
+}
+function sdkErase(){const s=sessions.sudoku;if(s.done||s.sel<0||s.puz[s.sel])return;s.cur[s.sel]=0;s.notes[s.sel]=0;drawSudoku()}
+
+/* ---------- Number Match (10 per row, 42 to start) ---------- */
+const W=10,START=42;
+function nmCan(cells,a,b){
+  if(a===b)return false;if(a>b)[a,b]=[b,a];
+  const va=cells[a].v,vb=cells[b].v;if(!(va===vb||va+vb===10))return false;
+  const clear=step=>{for(let k=a+step;k<b;k+=step)if(!cells[k].x)return false;return true};
+  if(clear(1))return true;const diff=b-a,ca=a%W,cb=b%W;
+  if(diff%W===0&&clear(W))return true;
+  if(diff%(W+1)===0&&cb-ca===diff/(W+1)&&clear(W+1))return true;
+  if(diff%(W-1)===0&&ca-cb===diff/(W-1)&&clear(W-1))return true;
+  return false;
+}
+function nmPairs(cells){ // every open pair, found by walking forward in four directions
+  const out=[],n=cells.length;
+  for(let a=0;a<n;a++){if(cells[a].x)continue;const ca=a%W,seen=new Set();
+    for(const step of [1,W,W+1,W-1]){
+      for(let k=1;;k++){const i=a+k*step;if(i>=n)break;
+        if(step===W+1&&i%W!==ca+k)break;if(step===W-1&&i%W!==ca-k)break;
+        if(!cells[i].x){const v=cells[a].v,w=cells[i].v;if((v===w||v+w===10)&&!seen.has(i)){seen.add(i);out.push([a,i])}break}}}}
+  return out;
+}
+function nmCleanCells(cells){const rows=[];for(let i=0;i<cells.length;i+=W)rows.push(cells.slice(i,i+W));
+  const kept=rows.filter(r=>r.some(c=>!c.x));let out=kept.flat();while(out.length&&out.at(-1).x)out.pop();return{cells:out,cleared:rows.length-kept.length}}
+function makeNumbers(){
+  const R=targetRating("numbers"),t=clamp((R-600)/1500,0,1);
+  const adds=Math.round(5-t*3);
+  const boards=[];for(let k=0;k<50;k++){const cells=Array.from({length:START},()=>({v:1+rnd(9),x:false}));boards.push({cells,open:nmPairs(cells).length})}
+  boards.sort((a,b)=>b.open-a.open);const b=boards[clamp(Math.round(t*(boards.length-1)),0,boards.length-1)];
+  return{cells:b.cells,adds,sel:-1,puzzleR:R,open:b.open,done:false,tipsUsed:0,hint:null};
+}
+function numbersTip(s){
+  const pairs=nmPairs(s.cells);
+  if(!pairs.length){
+    if(s.adds>0)return{title:"Add numbers",strategy:"There are no pairs left on the board. Adding copies every remaining number to the end, which creates new neighbors. Clear as much as you can before each add, because each add copies whatever is left.",
+      move:`Tap Add numbers. You have ${s.adds} left.`,free:true,action:{label:"Add numbers",fn:nmAdd}};
+    return{title:"No moves left",strategy:"No pairs remain and there are no adds left, so this board can't be finished.",move:null};
+  }
+  const partners={};pairs.forEach(([a,b])=>{partners[a]=(partners[a]||0)+1;partners[b]=(partners[b]||0)+1});
+  const scored=pairs.map(p=>{const cells=s.cells.map(c=>({...c}));cells[p[0]].x=cells[p[1]].x=true;const cl=nmCleanCells(cells);
+    const after=nmPairs(cl.cells).length;return{p,cleared:cl.cleared,after,gain:after-(pairs.length-1),forced:Math.min(partners[p[0]],partners[p[1]])===1&&(partners[p[0]]>1||partners[p[1]]>1)}});
+  const name=p=>`the ${s.cells[p[0]].v} and the ${s.cells[p[1]].v}`;
+  const where=i=>`row ${((i/W)|0)+1}`;
+  const why=(a,b)=>{const va=s.cells[a].v,vb=s.cells[b].v;return va===vb?"they match":"they add up to 10"};
+  let pick=scored.find(x=>x.cleared>0);
+  if(pick)return pkg(pick,"Clear a row",`Look for a pair that empties a whole row. Cleared rows disappear and pull the rows below up, which gives numbers new neighbors.`,
+    `Match ${name(pick.p)} in ${where(pick.p[0])}${where(pick.p[0])!==where(pick.p[1])?` and ${where(pick.p[1])}`:""}. ${pick.cleared>1?`${pick.cleared} rows`:"A row"} clears.`);
+  pick=scored.filter(x=>x.gain>0).sort((a,b)=>b.gain-a.gain)[0];
+  if(pick)return pkg(pick,"Open up the board",`Prefer pairs that unblock other numbers. Clearing a cell that sits between two numbers lets them see each other and creates new pairs.`,
+    `Match ${name(pick.p)} (${why(...pick.p)}). That opens ${pick.gain} new pair${pick.gain>1?"s":""}.`);
+  pick=scored.find(x=>x.forced);
+  if(pick)return pkg(pick,"Use numbers with one partner",`Some numbers have only one possible partner. Match those first, before that partner gets used somewhere else.`,
+    `Match ${name(pick.p)} (${why(...pick.p)}). One of them has no other partner.`);
+  pick=scored.sort((a,b)=>b.p[1]-a.p[1])[0];
+  return pkg(pick,"Work from the bottom",`When no move stands out, take pairs near the end of the board. That keeps the top rows intact, and the next add will line new numbers up beneath them.`,
+    `Match ${name(pick.p)} (${why(...pick.p)}).`);
+  function pkg(x,title,strategy,move){return{title,strategy,move,pair:x.p,action:{label:"Make the match",fn:()=>nmMatch(x.p[0],x.p[1])}}}
+}
+function renderNumbers(){
+  const s=sessions.numbers,st=$("#stage");
+  st.innerHTML=`<div class="info"><span>Left <b id="nLeft"></b></span><span>Pairs open <b id="nOpen"></b></span><span>Adds <b id="nAdds"></b></span></div>
+   <div class="nwrap" id="nwrap"><div class="ngrid" id="ng"></div></div>
+   <p class="rule">Tap two equal numbers or two that add up to 10. They must touch sideways, up-down or diagonally, with only cleared cells between. A row's end links to the next row's start.</p>
+   <div class="tools" id="tl"><button class="tool" id="addB">＋ Add numbers</button></div>`;
+  $("#tl").appendChild(tipButton(()=>{const t=numbersTip(s);s.hint=null;drawNumbers();
+    showTip({...t,onReveal:()=>{s.hint=t.pair||null;drawNumbers();const el=t.pair&&$(`.nc[data-i="${t.pair[0]}"]`);el&&el.scrollIntoView({block:"nearest",behavior:"smooth"})},onClose:()=>{s.hint=null;drawNumbers()}})}));
+  st.appendChild(giveUpButton(()=>finish("numbers",false,0,"You stepped away from this board.")));
+  $("#addB").onclick=nmAdd;drawNumbers();
+}
+function drawNumbers(){
+  const s=sessions.numbers,ng=$("#ng");if(!ng||!s)return;
+  const pad=(W-s.cells.length%W)%W,hint=s.hint;
+  ng.innerHTML=s.cells.map((c,i)=>`<button class="nc${c.x?" x":""}${i===s.sel?" sel":""}${hint&&hint.includes(i)?" hint":""}" data-i="${i}" ${c.x?'tabindex="-1" aria-hidden="true"':`aria-label="${c.v}"`}>${c.v}</button>`).join("")+'<span class="nc blank"></span>'.repeat(pad);
+  ng.querySelectorAll(".nc[data-i]").forEach(b=>b.onclick=()=>nmTap(+b.dataset.i));
+  $("#nLeft").textContent=s.cells.filter(c=>!c.x).length;$("#nOpen").textContent=nmPairs(s.cells).length;$("#nAdds").textContent=s.adds;
+  $("#addB").disabled=s.adds<=0||s.done;
+}
+function nmMatch(a,b){const s=sessions.numbers;s.cells[a].x=true;s.cells[b].x=true;s.sel=-1;s.hint=null;
+  const cl=nmCleanCells(s.cells);s.cells=cl.cells;drawNumbers();if(cl.cleared)toast(cl.cleared>1?`${cl.cleared} rows cleared`:"Row cleared",900);nmCheck()}
+function nmTap(i){
+  const s=sessions.numbers;if(s.done||s.cells[i].x)return;
+  if(s.sel<0){s.sel=i;drawNumbers();return}
+  if(s.sel===i){s.sel=-1;drawNumbers();return}
+  if(nmCan(s.cells,s.sel,i)){if(tipState)hideTip();nmMatch(s.sel,i);return}
+  s.sel=i;drawNumbers();const n=$(`.nc[data-i="${i}"]`);if(n)n.classList.add("bad");
+}
+function nmAdd(){const s=sessions.numbers;if(s.done||s.adds<=0)return;const rest=s.cells.filter(c=>!c.x).map(c=>({v:c.v,x:false}));
+  s.cells=s.cells.concat(rest);s.adds--;s.sel=-1;s.hint=null;drawNumbers();const w=$("#nwrap");if(w)w.scrollTop=w.scrollHeight;nmCheck()}
+function nmCheck(){const s=sessions.numbers;
+  if(!s.cells.some(c=>!c.x)){finish("numbers",true,Math.max(.3,1-TIP_COST*s.tipsUsed),`Board cleared with ${s.adds} add${s.adds===1?"":"s"} to spare.`);return}
+  if(!nmPairs(s.cells).length&&s.adds<=0){const left=s.cells.filter(c=>!c.x).length;finish("numbers",false,0,`No pairs and no adds left, ${left} numbers remaining.`)}}
+
+/* ---------- Wordle ---------- */
+const TIERS={"easy":["about","above","actor","adult","after","again","agree","ahead","alarm","album","alive","allow","alone","along","angry","apple","apply","arena","argue","aside","award","awake","basic","beach","begin","being","below","bench","birth","black","blame","blank","blind","block","blood","board","boost","brain","brand","brave","bread","break","brick","bride","brief","bring","broad","brown","brush","build","bunch","buyer","cabin","cable","candy","carry","catch","cause","chain","chair","chalk","charm","chart","cheap","check","chest","chief","child","china","claim","class","clean","clear","climb","clock","close","cloth","cloud","coach","coast","color","count","court","cover","crash","cream","crime","cross","crowd","crown","dance","dirty","doubt","dozen","draft","drama","dream","dress","drink","drive","early","earth","eight","elbow","empty","enemy","enjoy","enter","equal","error","event","every","exact","exist","extra","faith","false","fault","favor","field","fifth","fifty","fight","final","first","flame","flash","floor","flour","fluid","focus","force","forty","found","frame","fresh","front","fruit","funny","ghost","giant","given","glass","globe","glove","grace","grade","grain","grand","grant","grass","great","green","group","guard","guess","guest","guide","happy","heart","heavy","horse","hotel","house","human","humor","ideal","image","issue","joint","judge","juice","knife","label","large","laugh","layer","learn","least","leave","legal","lemon","level","light","limit","local","lucky","lunch","magic","major","maker","march","match","maybe","mayor","meant","medal","metal","minor","model","money","month","moral","motor","mount","mouse","mouth","movie","music","nerve","never","night","noise","north","novel","nurse","ocean","offer","often","order","other","owner","paint","panel","paper","party","peace","phase","phone","photo","piano","piece","pilot","pitch","pizza","place","plain","plane","plant","plate","point","pound","power","press","price","pride","prime","print","prize","proof","proud","queen","quick","quiet","quite","radio","raise","range","rapid","reach","ready","right","river","robot","rough","round","route","royal","rural","salad","scale","scene","scope","score","sense","serve","seven","shade","shake","shape","share","sharp","sheep","sheet","shelf","shell","shift","shirt","shock","shoot","short","shout","sight","skill","sleep","slice","slide","small","smart","smile","smoke","snake","solid","solve","sorry","sound","south","space","speak","speed","spend","spoon","sport","staff","stage","stair","stamp","stand","start","state","steam","steel","stick","still","stock","stone","store","storm","story","stove","style","sugar","suite","sunny","super","sweet","table","taste","teach","teeth","thank","theme","thick","thing","think","third","three","throw","thumb","tiger","tired","title","toast","today","topic","total","touch","tower","track","trade","train","treat","trend","trial","truck","truly","trust","truth","twice","uncle","under","union","until","upper","upset","urban","usual","value","video","visit","voice","waste","watch","water","wheel","where","which","while","white","whole","woman","world","worry","write","wrong","young","youth","zebra"],"med":["abbey","acorn","adore","agile","alley","amber","amble","angel","ankle","apron","arbor","ardor","aroma","askew","aspen","atlas","attic","audit","avoid","badge","bagel","baker","banjo","barge","baron","basin","baton","belch","berth","bison","blaze","bleak","bliss","bloom","bluff","blunt","blurt","blush","boast","bongo","booth","bough","brace","braid","brash","brawl","brine","brink","brisk","broth","brute","budge","bugle","bulge","burly","bylaw","cache","camel","canoe","caper","cargo","carve","cedar","chant","chasm","cheer","chess","chime","chord","chunk","cider","cinch","civic","clamp","clasp","cleft","cling","cloak","clove","comet","coral","couch","crane","crate","crave","creek","crept","crest","crisp","croak","crumb","crust","cubic","curly","cycle","daisy","decoy","delta","denim","depot","dodge","dough","dowel","drape","drift","drone","dwarf","dwell","eager","eagle","easel","ebony","elder","elope","ember","epoch","evict","exile","fable","feast","feign","ferry","fiber","flair","flask","fleet","flick","fling","flint","flock","flora","flute","focal","foggy","forge","forgo","frail","frost","froth","gauge","gavel","gecko","gleam","glint","gloom","gnome","gourd","grail","grape","gravy","graze","grill","grind","gripe","groan","grove","growl","gruel","guild","guise","gusty","habit","harsh","hasty","hatch","haunt","haven","hazel","hedge","heron","hinge","hoist","hound","husky","icing","igloo","inlet","irony","ivory","jelly","jewel","jolly","joust","kayak","knack","knead","kneel","knelt","koala","lance","lapse","latch","lathe","leafy","ledge","lever","lilac","linen","llama","lodge","lofty","lunar","lurch","lyric","mango","manor","maple","marsh","mirth","moist","molar","moose","mossy","mound","mourn","mural","nacho","noble","notch","nudge","nylon","oasis","olive","onset","opera","otter","oxide","panda","pansy","parka","patio","pearl","pecan","perch","petal","plaid","plank","plume","plush","poker","polar","pouch","prawn","prism","prong","prune","pulse","quail","quake","quell","quill","quirk","quota","radar","rally","ranch","raven","realm","rebel","relic","ridge","rivet","roost","rusty","saint","satin","sauce","savor","scald","scalp","scarf","scorn","scout","scrub","shard","shawl","sheen","shrub","siege","sigma","skate","skull","slant","sleek","sleet","sling","sloth","slump","smirk","snare","sneak","snore","spade","spark","spawn","spear","spice","spine","spoil","spore","spurn","squid","stain","stalk","stark","steed","stoic","stomp","stork","stout","straw","stray","strum","stump","surge","swamp","swirl","sword","syrup","tango","tapir","taunt","thief","thorn","tidal","toxic","tread","trout","truce","tulip","tunic","tweak","twirl","udder","ulcer","umber","unify","usher","valve","vapor","vault","venom","verge","vigor","viola","vivid","vocal","vodka","wafer","waltz","weary","wedge","whale","whisk","widen","witty","woven","wrath","yacht","yearn","yeast","zesty"],"hard":["abyss","affix","agape","alibi","amity","anvil","aorta","aphid","axiom","azure","banal","bayou","befit","bigot","bilge","blimp","borax","bosom","cacao","cairn","caulk","chaff","churl","clout","codex","comma","coupe","coven","covey","crypt","cynic","dally","deign","delve","dirge","dogma","dowdy","droll","duvet","dwelt","eclat","egret","elegy","ennui","epoxy","ether","evoke","exult","fakir","farce","fetid","fjord","flail","fluke","folly","frond","fugue","gaffe","gaudy","gawky","gizmo","glean","glyph","gnash","gouge","guano","gusto","havoc","helix","hovel","hutch","hydra","hyena","idyll","impel","inane","inept","infer","ingot","inlay","irate","jaunt","jiffy","junta","kiosk","knoll","kudzu","lapel","leery","libel","lithe","livid","loath","lumen","lymph","mauve","miser","motif","murky","nadir","naive","nymph","oaken","octet","offal","ovoid","paean","parch","parry","pique","plait","privy","psalm","pygmy","quaff","qualm","quasi","quash","rebus","recur","regal","rheum","rhyme","roust","rupee","satyr","scion","sedan","shoal","sinew","skulk","slosh","sylph","tacit","talon","tawny","tenet","thyme","tibia","tipsy","toady","topaz","triad","tryst","tumid","umbel","unzip","usurp","vapid","vexed","vigil","vixen","vouch","wager","whelp","wield","wonky","wryly","xenon","yodel","yokel","yucca","zilch","zonal"]};
+const DICT=new Set("aalii abaca aback abaft abamp abase abash abate abbes abbey abbot abeam abele abets abhor abide abies abler abmho abode abohm abort about above abuse abuts abuzz abysm abyss acari accel acerb ached aches achoo acids acing acini acmes acned acorn acred acres acrid acted actin actor acute adage adapt addax added adder addle adept adieu adios adits adman admen admin admit admix adobe adopt adore adorn adown adult adust adzes aecia aedes aegis aerie aeron affix afire afoot afore afoul afrit after again agama agape agate agave agent agger aggie aggro agile aging agios agist agita aglet agley aglow agone agony agora agree agric agron ahead aided aider aides ailed aimed aioli aired airts aisle aitch akees akene alack alarm alary alate album alder aldol aleph alert algae algal algid algin algor alias alibi alien align alike alive alkyd alkyl allay allee alley allot allow alloy allyl aloes aloft aloha aloin alone along aloof aloud alpha altar alter altos alula alums amahs amain amass amaze amber ambit amble ambos ambry amend ament amice amide amigo amine amino amiss amity amnio among amour ample amply amuse ancon anear anele anent angel anger angle angry angst anile anils anima anime anion anise ankhs ankle ankus annal annas annex annoy annul anoas anode anole anons anted antes antic antiq antis antre antsy anvil aorta apace apart apeak apery aphid aphis apian aping apish apnea aport appel apple apply apron apses apsis apter aptly aquas araks arbor arced archt ardeb ardor areal areas areca arena arete argal argil argol argon argot argue arias ariel arils arise armed armet armor aroid aroma arose arras array arris arrow arsed arsis arson artel artsy arums ascot ascus asdic ashed ashen ashes aside asked asker askew aspen asper aspic assai assay asses asset assoc aster astir atilt atlas atman atoll atoms atomy atone atony atria atrip attar attic audio audit auger aught augur aulic aulos aunts aural aurar auras auric aurum autos auxin avail avast avens avers avert avian avion avoid avoir avows await awake award aware awash awful awing awned awoke axial axils axing axiom axles axons ayahs ayins azide azine azoic azole azote azoth azure baaed babas babel babes babul baccy backs bacon badge badly bagel baggy bahts bails bairn baits baiza baize baked baker bakes balas balds baldy baled baler bales balks balky balls bally balms balmy balsa banal bands bandy banes bangs banjo banks banns barbs barde bards bared barer bares barfs barge baric barit barks barms barmy barns baron barre barye basal based baser bases basic basil basin basis basks basso baste batch bated bates bathe baths batik baton batty bauds bawds bawdy bawls bayed bayou bazar beach beads beady beaks beams beamy beano beans beard bears beast beats beaus beaut bebop becks bedel bedew bedim beech beefs beefy beeps beers beery beets befit befog began begat beget begin begot begum begun beige being belay belch belga belie belle bells belly below belts bemas bench bends bendy benne benny bents beret bergs berks berms berry berth beryl beset besom besot bests betas betel beths betta bevel bevvy bezel bhaji bhang bialy bible bicep biddy bides bidet bield biers biffs bifid bight bigot bijou biked biker bikes bilbo bilge bilks bills billy bimah bimbo binal binds bines binge bingo biome biota biped bipod birch birds birls birrs birth bises bison bitch biter bites bitts bitty blabs black blade blags blahs blain blame bland blank blare blase blast blate blats blaze bleak blear bleat blebs bleed bleep blend bless blimp blind bling blini blink blips bliss blitz bloat blobs block blocs blogs bloke blond blood bloom bloop blots blown blows blowy blued bluer blues bluet bluey bluff blunt blurb blurs blurt blush board boars boart boast boats bobby boded bodes bodge boffo bogey boggy bogie bogle bogon bogus boils boink bolas boles bolls bolos bolts bolus bombe bombs bonce bonds boned boner bones bongo bongs bonks bonne bonny bonus bonze boobs booby booed books booms boong boons boors boost booth boots booty booze boozy borak borax bored borer bores boric borne boron bosky bosom boson bossy botch botel bothy bough boule bound bouse bouts bovid bowed bowel bower bowls bowse boxed boxen boxer boxes boyar boyla bozos brace brach bract brads braes brags braid brail brain brake brand brant brash brass brats brave bravo brawl brawn braxy brays braze bread break bream brede breed brent breve brews bribe brick bride brief brier brigs brill brims brine bring brink briny brisk brits broad broch brock broil broke bronc brood brook broom brose broth brown brows bruin bruit brume brunt brush brute bubal bubba bucko bucks buddy budge bueno buffo buffs buggy bugle buhls build built bulbs bulge bulgy bulks bulky bulla bulls bully bumph bumps bumpy bunch bunco bungs bunks bunny bunts buoys buran burbs buret burgh burgs burin burka burke burls burly burns burnt burps burro burrs burry bursa burse burst busby bused buses bushy busks busts busty butch buteo butte butts butty butut butyl buxom buyer bwana bylaw byres bytes byway cabal cabby caber cabin cable cabob cacao cache cacti cadet cadge cadre cafes caffs caged cager cages cagey caird cairn caked cakes calks calla calls calms calve calyx camel cameo campo camps campy canal candy caned caner canes canna canny canoe canon canso canst canto cants canty caped caper capes capon capos caput carat carbs cards cared carer cares caret cargo carks carny carob carol carom carpi carps carry carse carte carts carve cased cases casks caste casts catch cater catty cauda caulk cauls cause caved caver caves cavie cavil cawed cease cecal cecum cedar ceded ceder cedes cedis ceiba celeb cella cello cells celom cense cento cents ceorl cered ceres ceria ceric ceros certs cesar cesta chads chafe chaff chain chair chalk champ chant chaos chape chaps chard chare charm charr chars chart chary chase chasm chats chaws cheap cheat check cheek cheep cheer chefs chela chemo chert chess chest chevy chews chewy chiao chick chico chide chief child chili chill chimb chime chimp china chine ching chink chino chins chips chirk chirm chirp chirr chits chive chivy chock chocs choir choke choli chomp chook chops chord chore chose chows chron chubs chuck chufa chuff chugs chump chums chunk churl churn churr chute chyle chyme ciaos cider cigar cilia cimex cinch circa cirri cisco cited cites civet civic civil clack clade claim clamp clams clang clank clans claps claro clary clash clasp class clave clavi claws clays clean clear cleat cleek clefs cleft clepe clerk clews click cliff climb clime cline cling clink clips clits cloak clock clods clogs clomb clomp clone clonk clops close cloth clots cloud clout clove clown cloys clubs cluck clued clues clump clung clunk clvii clxii clxiv clxix clxvi coach coact coals coaly coast coati coats cobia coble cobra cocci cocks cocky cocoa cocos codas coded coder codes codex codon coeds cogon cohos coifs coign coils coins coirs coked cokes colas colds coles coley colic colly colon color colts colza comas combe combo combs comdg comer comes comet comfy comic comma compo comps conch condo conga conic conns contd conte conto contr cooed cooee cooks cools coomb coons coops coots copal copay coped coper copes copra copse coral cords cored corer cores corgi coria corks corky corms corns cornu corny corps corse cosec coset costa coste costs cotes cotta couch cough could count coupe coups court couth coven cover coves covet covey covin cowed cower cowls coxae coxed coxes coyer coyly coypu cozen craal crabs crack craft crags crake cramp crams crane crank crape craps crapy crash crass crate crave crawl craws crays craze crazy creak cream credo creed creek creel creep creme crepe crept cress crest crews cribs crick cried crier cries crime crimp crine crisp croak crock croft crone cronk crony crook croon crops crore cross croup crowd crown crows croze cruck crude cruel cruet cruft crumb crump cruse crush crust crwth crypt cryst cubby cubeb cubed cuber cubes cubic cubit cuddy cuffs cuing cukes culch culet culex culls cully culms culpa cults cumin cunts cupel cupid cuppa curbs curch curds curdy cured curer cures curet curia curie curio curls curly curry curse curve curvy cusec cushy cusks cusps cutch cuter cutey cutie cutin cutis cutty cutup cycad cycle cylix cymar cymas cymes cynic cysts cyton czars daces dacha dadas daddy daffy dagos dahls daily dairy daisy dales dally daman damar dames damns damps dance dandy dangs danio dared darer dares daric darky darns darts dated dater dates datum daube daubs daunt davit dawns dazed dazes dding deals dealt dears deary death debag debar debit debts debug debus debut decaf decal decay decks decor decoy decry dedal deems deeps defog degas deice deify deign deism deist deity dekko delay delft delis dells delta delve demit demob demon demur denar denim denom dense dents depot depth derby deriv derma derry desex desks deter detox deuce devil dewan dhobi dhole dhoti dhows dials diary diazo diced dicer dices dicey dicks dicot dicta didst diets diffs dight digit diked dikes dildo dills dilly dimer dimes dimly dinar dined diner dines dinge dingo dings dingy dinky dints diode dippy dipso direr dirge dirks dirty disco discs dishy disks distr ditch ditsy ditto ditty divan divas dived diver dives divot divvy diwan dixie dizen dizzy dobby dobla dobra dobro docks dodge dodgy dodos doers doffs doges doggo doggy dogie dogma doily doing dolce doled doles dolls dolly dolor dolts domed domes donas donee donga dongs donna donne donor dooms doors doozy doped doper dopes dopey dorks dorky dorms dorty dosed doses doted doter dotes dotty doubt douce dough douma douse doves dowdy dowel dower dowie downs downy dowry dowse doyen dozed dozen dozer dozes drabs draff draft drags drain drake drama drams drank drape drawl drawn draws drays dread dream drear dregs dress dried drier dries drift drill drink drips drive droid droit droll drone drool droop drops dross drove drown drubs drugs druid drums drunk drupe druse dryad dryer dryly duads duals ducal ducat duchy ducks ducky ducts duded dudes duels duets duffs dukes dulia dulls dully dulse dumbo dummy dumps dumpy dunce dunes dungs dunks dunno duomo duped duper dupes duple duppy durra durst durum dusky dusts dusty dutch duvet dwarf dweeb dwell dwelt dyads dyers dying dykes dynes eager eagle eagre eared earls early earns earth eased easel eases eaten eater eaves ebbed ebony echos eclat edema edged edger edges edict edify edits educe educt eerie effed egads egest egged egger egret eider eidos eight eikon eject eking eland elate elbow elder elect elegy elemi elfin elide elite elope elude elute elver elves email embay embed ember embow embus emcee emend emery emirs emits emmer emmet emoji emote empty enact enate ended endow endue enema enemy engin enjoy ennui ensue enter entry envoi envoy eosin epact epees ephah ephod ephor epics epoch epode epoxy equal equip equiv erase erect ergot ernes erode erose erred error eruct erugo erupt esker essay ester estop ether ethic ethos ethyl etnas etude etuis euros evade evens event evert every evict evils evite evoke ewers exact exalt exams excel exeat execs exert exile exine exist exits exons expat expel expos extol extra exude exult exurb eyras eyrir fable faced facer faces facet facts faddy faded fader fades fadge faena faffs fagot fails faint fairs fairy faith faked faker fakes fakir falls false famed fancy fango fangs fanny fanon faqir farad farce farci farcy fared farer fares farms farts fasts fatal fated fates fatly fatso fatty fatwa faugh fault fauna fauns fauve faves favor favus fawns faxed faxes fayer fazed fazes fears feast feats fecal feces fecit feeds feels feeze feign feint felid fella fells felly felon felts femme femur fence fends fenny feoff feral feria fermi ferns ferny ferry fests fetal fetch feted fetes fetid fetor fetus feuar feuds fever fewer feyly fiats fiber fiche fichu ficus fidge fiefs field fiend fiery fifer fifes fifth fifty fight filar filch filed filer files filet fills filly films filmy filth filum final finch finds fined finer fines finis finks finny fired firer fires firms firry first firth fiscs fishy fists fitch fitly fiver fives fixed fixer fixes fizzy fjeld fjord flack flags flail flair flake flaky flame flank flans flaps flare flash flask flats flaws flawy flays fleam fleas fleck fleer flees fleet flesh flews flick flied flier flies fling flint flips flirt flite flits float flock flocs floes flogs flong flood floor flops flora flory floss flour flout flown flows flubs flues fluff fluid fluke fluky flume flump flung flunk fluor flush flute fluty flyby flyte foals foams foamy focal focus foehn foggy foils foist folds folia folic folie folio folks folly fonts foods fools foots footy foray forby force fordo fords fores forge forgo forks forme forms forte forth forts forty forum fossa fosse fouls found fount fours fovea fowls foxed foxes foyer frack frags frail frame franc frank fraps frats fraud frays freak freed freer frees fremd frena fresh frets friar fried fries frigs frill frisk frith fritz frize frizz frock frogs frond frons front frore frosh frost froth frown froze fruit frump fryer fubsy fucks fucus fudge fuels fugal fuggy fugue fulls fully fumed fumes funds fungi fungo funks funky funny furan furls furor furry furze furzy fused fusee fuses fusil fussy fusty futon fuzzy gabby gable gadid gaffe gaffs gaily gains gaits galah galas galea gales galls galop gamba gamed gamer games gamic gamin gamma gammy gamps gamut ganef gangs ganja ganof gaped gapes gappy garbs garth gases gasps gassy gated gater gates gator gauds gaudy gauge gaunt gaurs gauss gauze gauzy gavel gawks gawky gawps gayer gazed gazer gazes geans gears gecko geeks geeky geese geest gelds gelid gemma gemmy gemot genes genet genic genie genii genip genit genoa genre genro gents genus geode geoid gerah germs germy gesso getup ghats ghazi ghees ghost ghoul ghyll giant gibed giber gibes giddy gifts gigot gigue gilds gills gilts gimel gimme gimps gimpy ginny gipon girds girls girly giros girth girts gites given giver gives gizmo glace glade glads glair gland glans glare glary glass glaze gleam glean glebe glede gleet glens glias glide glint glitz gloam gloat globe globs gloms gloom glory gloss glove glows gloze glued glues gluey glume gluon gluts glyph gnarl gnash gnats gnaws gnome goads goals goats godly goers gofer going golds golem golfs golly gonad goner gongs gonif gonks gonna gonzo goods goody gooey goofs goofy gooks goons goose goosy gopak goral gored gores gorge gorps gorse goths gotta gouge gourd gouty gowan gowns goyim grabs grace grade grads graft grail grain grams grand grans grant grape graph grasp grass grate grave gravy grays graze great grebe greed green greet greps gride grids grief grift grill grime grimy grind grins gripe grips grist grith grits groan groat groin groks groom grope gross grosz grots group grout grove growl grown grows grubs gruel grues gruff grume grump grunt guaco guano guans guard guars guava gucks guess guest guide guild guile guilt guise gulag gulas gulch gules gulfs gulls gully gulps gumbo gumma gummy gunge gungy gunky gunny guppy gurge gurus gushy gussy gusto gusts gusty gutsy gutta gutty guyed guyot gypsy gyral gyres gyron gyros gyrus gyved gyves habit hacek hacks hades hadst hafiz hafts haiku hails hairs hairy hajes hajji hakes hakim halal haled haler hales halls halms halon halos halts halve hamal hames hammy hamza hance hands handy hangs hanks haole haply happy hards hardy hared harem hares harks harms harps harpy harry harsh harts hasps haste hasty hatch hated hater hates haugh haulm hauls haunt haven haver haves havoc hawed hawks hawse hayed hazan hazed hazel hazer hazes hdqrs heads heady heals heaps heard hears heart heath heats heave heavy heder hedge heeds heels hefts hefty heirs heist helix hello hells helms helot helps helve hemal hemic hemin hence henge henna henry herbs herby herds heres heron hertz heths hewed hewer hexad hexed hexer hexes hexyl hicks hided hider hides highs hight hijab hiked hiker hikes hills hilly hilts hilum hinds hinge hings hinny hints hippo hippy hired hirer hires hitch hived hives hoard hoars hoary hobby hobos hocks hocus hoers hogan hoick hoist hoked hokes hokey hokku hokum holds holed holes holey holly homed homer homes homey homos honed honer hones honey honks honky honor hooch hoods hooey hoofs hooks hooky hoops hoots hoped hopes horah horal horas horde horme horns horny horol horse horst hosed hoses hosta hosts hotel hotly hough hound houri hours house hovel hover howdy howls hubby huffs huffy huger hulas hulks hulky hulls human humic humid humor humph humps humpy humus hunch hunks hunky hunts hurds hurls hurry hurst hurts husks husky hussy hutch hydra hydro hyena hying hymen hymns hyoid hyped hyper hypes hypha hypos hyrax hyson iambi iambs ichor icier icily icing icons ictus ideal ideas idiom idiot idled idler idles idols idyll igloo ihram ileac ileal ileum ileus iliac ilium illus image imago imams imbue imide imine immix impel imper imply inane inapt inbox inced incur incus indef index indic indie induc inept inert infer infin infix infra ingle ingot inion inkle inlay inlet inner innit inorg input inset instr intel inter intis intro inure inurn ioctl iodic ionic iotas irade irate irked irons irony irreg isles islet issei issue istle itchy items ivied ivies ivory ixtle izard jabot jacal jacks jaded jades jaggy jails jakes jalap jambs jammy japan japed japer japes jatos jaunt jawed jazzy jeans jebel jeeps jeers jello jells jelly jemmy jenny jerid jerks jerky jerry jests jetty jewel jibed jibes jiffs jiffy jihad jilts jimmy jingo jinks jinni jived jiver jives jivey jocko jocks joeys johns joins joint joist joked joker jokes jokey jolly jolts jolty jorum joule joust jowls jowly joyed judge jugal jugum juice juicy jujus julep jumbo jumps jumpy junco junks junta jupon jural jurat jurel juror jutty kafir kaiak kails kakis kalif kalis kalpa kanji kanzu kaons kaphs kapok kappa kaput karat karma karst karts kasha kauri kavas kayak kayos kazoo kebab kedge keels keens keeps kelly kenaf kendo kente kepis kerne ketch kevel keyed khaki khans kheda khoum kiang kibes kicks kicky kiddo kikes kills kilns kilos kilts kinas kinda kinds kines kings kinin kinks kinky kinos kiosk kited kites kitty kiwis klong kloof kluge klutz knack knaps knave knead kneed kneel knees knell knelt knife knish knits knobs knock knoll knots knout known knows knurl koala koans kobos kohls koine kolas kooks kooky kopje korma koses kotos kraal kraft krait kraut krill krona krone kroon kudos kudus kudzu kukri kulak kurus kvass kyats kyles kylix label labia labor laced lacer laces lacks laded laden lades ladle lagan lager laird lairs laity laker lakes lakhs lamas lambs lamed lamer lames lamia lamps lanai lance lands lanes lanky lapel lapin lapse larch lards lardy lares large largo larks larum larva lased laser lases lasso lasts latch lated later latex lathe lathi laths lathy latke latte lauds laugh lavas laved laver laves lawns laxer laxly layer layup lazar lazed lazes leach leads leafs leafy leaks leaky leans leaps leapt learn lease leash least leave ledge leech leeks leers leery lefts lefty legal leges leggy legit leman lemma lemme lemon lemur lends lenis lento leone leper lepta lethe letup levee level lever levin lewis lexer lexis liana liard liars libel liber libra licit licks lidos liege liens lifer lifts ligan liger light liked liken liker likes lilac lilos lilts limbo limbs limed limen limes limey limit limns limos limps lindy lined linen liner lines lingo lings linin links lints linty lions lipid lippy lisle lisps lists litas liter lithe litho lived liven liver lives livid livre llama llano loach loads loafs loams loamy loans loath lobar lobby lobed lobes local locks locos locum locus loden lodes lodge loess lofts lofty logan loges loggy logia logic login logon logos loins lolls lolly loner longe longs looby looks looms loons loony loops loopy loose loots loped loper lopes loppy loran lords loris lorry losel loser loses lotas lotic lotto lotus lough louis loupe lours louse lousy louts loved lover loves lovey lowed lower lowly loyal luaus lubed lubes lubra lucid lucks lucky lucre ludic luffa luffs luged luges lulls lulus lumen lumps lumpy lunar lunch lunge lungi lungs lupus lurch lured lures lurex lurgy lurid lurks lushy lusts lusty lutes luxes lweis lxvii lying lymph lynch lyres lyric lyses lysin lysis lyssa lytic lytta macaw maced maces macho macle macro madam madly mafia mages magic magma magus maids mails maims mains maize major maker makes makos malar males malls malts malty mamas mamba mambo mamey mamma mammy manas manat maned manes manga mange mango mangy mania manic manky manly manna manor manse manta manuf maple maras march marcs mares marge maria marka marks marls marly marry marsh marts maser masks mason massy masts match mated mater mates matey matin matte matzo mauls maund mauve maven mavis maxed maxes maxim maxis maybe mayor mayst mazer mazes meals mealy means meant meany meats meaty mecca medal media medic meets meiny melds melee melic melon melts memes memos mends menus meows mercy meres merge merit merle merry mesas mesic mesne meson messy metal meted meter metes meths metic metis metro mewed mewls mezzo micks micro middy midge midis midst miens miffs miffy might miked mikes mikva milch miler miles milfs milia milit milks milky mills milos milts mimed mimer mimes mimic mince minds mined miner mines mingy minim minis minke minks minor mints minty minus mired mires mirin mirth mirza misdo miser missy mists misty miter mites mitis mitts mixed mixer mixes mneme moans moats mocha mocks modal model modem modes moggy mogul mohur moils moire moist mokes molal molar molas molds moldy moles molls molly molts mommy monad monas monde money mongo monks monte month mooch moods moody mooed moons moony moors moose moots moped moper mopes mopey moral moray morel mores morns moron morph morse mosey mossy motel motes motet moths mothy motif motor motte motto moues mound mount mourn mouse mousy mouth moved mover moves movie mowed mower moxie mucin mucks mucky mucor mucro mucus muddy mudra muffs mufti muggy mujik mulch mulct mules muley mulla mulls multi mummy mumps munch mungs muons mural murex murks murky murre mused muser muses mushy music musky mussy musth musts musty muted muter mutes mutts muzak muzzy myall mycol mynas myrrh myths naans nabob nacho nacre nadir naevi naiad naifs nails naira naive naked naker nakfa named namer names nance nancy nanny napes nappe nappy narcs nards nares naris narky nasal nasty natal natch nates natty naval navar navel naves navig navvy nawab neaps nears neath necks needs needy negro negus neigh nelly neper neral nerds nerdy nerve nervy nests netty neume never nevus newel newer newly newsy newts nexus ngwee nicer niche nicks nidus niece niffy nifty nigga night nihil nimbi nimby nines ninja ninny ninon ninth nipas nippy nisei nisus niter nitid nitro nitty nival nixed nixes nobby noble nobly nocks nodal noddy nodes nodus noels nohow noise noisy nomad nomen nonce nones nonet nooks nooky noons noose noria norms north nosed noses notch noted notes notum nouns novae novas novel noway nubby nuder nudes nudge nuked nukes nulls numbs numen numis nurse nutty nyala nylon nymph oaken oakum oared oases oasis oasts oaten oaths obeah obeli obese obeys obits objet oboes oboli occas occur ocean ocher ocker ocrea octad octal octan octet oculi odder oddly odeon odeum odium odors offal offed offer often ogeed ogham ogive ogled ogler ogles ogres ohmic oiled oiler oinks okapi okays okras olden older oldie oleic olein oleum olive ollas ology omasa omber omega omens omits onion onset ontic oohed oomph ootid oozed oozes opahs opals opens opera opine oping opium opted optic orals orang orate orbit orcas order oread organ oriel orlop ornis orris osier osmic other ottar otter ought ounce ouphe ousel ousts outdo outed outer outgo outre outta ouzel ouzos ovals ovary ovate ovens overs overt ovine ovoid ovolo ovule owing owlet owned owner oxbow oxide oxime ozone paced pacer paces pacey pacha packs pacts paddy padre paean paeon pagan paged pager pages pails pains paint pairs paisa paled paleo paler pales palls pally palms palmy palsy pampa panda paned panel panes panga pangs panic panne pansy panto pants papal papas paper pappy paras parch pared parer pares pareu parka parks parky parol parrs parry parse parts party parve pasha pashm passe pasta paste pasts pasty patch paten pates paths patin patio patly patsy patty pause pavan paved paves pavid pavis pawed pawls pawns paxes payed payee payer peace peach peags peaks peaky peals peans pearl pears peart peaty pebas pecan pecks pedal peeks peels peens peeps peers peeve pekan pekes pekoe pelts penal pence pends penis penna penne penni penny peons peony peppy perch perdu peril peris perks perky perms perry perse pervs pesky pesos pesto pests pesty petal peter petit petty pewee pewit phage phase pheon phial phish phlox phone phons phony photo phots phren phyla phyle piano picks picky picot picul piece piers pieta piety piggy piing pikas piked piker pikes pilaf pilch piled pilei piles pills pilot pimps pinch pined pines piney pings pinko pinks pinna pinny pinon pinta pinto pints pinup pions pious piped piper pipes pipit pique pirog piste pitas pitch piths pithy piton pitta pivot pixel pixie pizza place plage plaid plain plait plane plank plans plant plash plasm plate plats platy playa plays plaza plead pleas pleat plebe plebs plena plica plied plier plies ploce plods plonk plops plots plows ploys pluck plugs plumb plume plump plums plumy plunk plush poach pocks pocky poddy poems poesy poets pogey pogge poilu point poise poked poker pokes pokey polar poled poler poles polio polis polit polka polls polyp polys pomes pommy ponce poncy ponds pones pongs pooch poods pooed poofs poohs pooka pools poons poops popes poppa poppy popup porch pored porer pores porgy porky porno ports posed poser poses posit posse posts potto potty pouch poufs poult pound pours pouts pouty power poxes prams prana prang prank prase prate prats prawn prays preen preps presa press prexy preys price prick pride pried prier pries prigs prime primo primp prink print prion prior prism privy prize probe prods proem profs prole promo prone prong proof propr props prose prosy proud prove prowl prows proxy prude prune psalm pseud pshaw psoas psych pubes pubic pubis pucka pucks pudgy puffs puffy puked pukes pukka pulas puled puler pules pulls pulps pulpy pulse pumas pumps punch pungs pungy punks punts pupae pupal pupil puppy puree purer purge purls purrs purse pursy pushy pussy putto putts putty pwned pygmy pylon pyoid pyres pyxes pyxie pzazz qibla qophs quack quads quaff quail quake quaky quale qualm quant quark quart quash quasi quass quays quean queen queer quell quern query quest queue quick quids quiet quiff quill quilt quine quins quint quips quipu quire quirk quirt quite quits quoin quoit quota quote quoth rabbi rabid raced racer races racks racon radar radii radio radix radon rafts ragas raged rages ragga ragis raids rails rains rainy raise rajah rajes raked raker rakes rales rally ramen ramie ramps rance ranch randy ranee range rangy ranks rants raped raper rapes rapid rared rarer rares rasps raspy ratal ratan rated ratel rater rates rathe ratio ratty raved ravel raven raver raves ravin rawer rayon razed razee razes razor reach react ready realm reals reams reaps rearm rears reata reave rebec rebel rebid rebus rebut recap recce recon recti recto recur recut redan redid redly redux redye reedy reefs reeks reeky reels reest reeve refer refit refix refry regal regex rehab reify reign reive rejig relax relay relic remap remex remit remix renal rends renew renin rents reorg repay repel reply repps repro reran rerun resat reset resew resin resit resow rests retch retie retro retry reuse revel revet revue rewed rheas rheum rhino rhomb rhumb rhyme rials riant riata riced ricer rices ricks rider rides ridge ridgy riels rifer riffs rifle rifts right rigid rigor riled riles rille rills rimed rimes rinds rings rinks rinse riots ripen riper risen riser rises rishi risks risky rites ritzy rival rived riven river rives rivet riyal roach roads roams roans roars roast robed robes robin roble robot rocks rocky rodeo roger rogue roils roily roles rolls roman romeo romps ronde rondo roods roofs rooks rooky rooms roomy roose roost roots roped roper ropes roque roses rosin rotas rotls rotor roues rouge rough round rouse roust route routs roved rover roves rowan rowdy rowed rowel rower royal rubel rubes ruble ruche rucks rudds ruddy ruder ruffs rugby ruing ruins ruled ruler rules rumal rumba rumen rummy rumor rumps runes rungs runic runny runts runty rupee rural ruses rushy rusks rusts rusty ruths rutty saber sabin sable sabot sabra sacks sacra sades sadhu sadly safer safes sagas sager sages saggy sahib saiga sails saint saith saker sakes salad salep sales sally salmi salol salon salpa salsa salts salty salve salvo samba sambo sames samey sands sandy saner sapid sapor sappy saran sards sarge saris sarky saros sasin sassy satay sated satem sates satin satyr sauce saucy sauna saury saute saved saver saves savor savoy savvy sawed sawer saxes sayer scabs scads scags scald scale scalp scaly scamp scams scans scant scape scare scarf scarp scars scary scats scend scene scent schmo schwa scion scoff scold scone scoop scoot scope score scorn scour scout scowl scows scrag scram scrap scree screw scrim scrip scrod scrog scrub scrum scuba scudo scuds scuff scull sculp scums scups scurf scuta scute scuts seals seams seamy sears seats sebum secco sects sedan sedge sedgy sedum seeds seedy seeks seels seems seeps seers segno segue seine seise seism seize selah sells semen semis sends senna senor sense sente sepal sepia sepoy septa septs serai serer serfs serge serif serin serow serum serve servo setae setts setup seven sever sewan sewed sewer sexed sexes sexts shack shade shads shady shaft shags shahs shake shako shaky shale shall shalt shame shams shank shape shard share shark sharp shave shawl shawm shays sheaf shear sheds sheen sheep sheer sheet shelf shell shend shewn shews shied shier shies shift shill shims shine shins shiny ships shire shirk shirr shirt shits shiva shive shivs shoal shoat shock shoes shone shook shool shoos shoot shops shore short shote shots shout shove shown shows showy shred shrew shrub shrug shuck shuns shunt shush shuts shyer shyly sibyl sicko sicks sided sides sidle siege sieve sifts sighs sight sigil sigma signs sikas silds silks silky sills silly silos silts silty silva simar simba since sines sinew singe sings sinks sinus sired siren sires sisal sises sissy sitar sited sites situs sixes sixth sixty sizar sized sizer sizes skald skate skean skeet skegs skein skelp skeps skews skids skied skier skies skiff skill skimp skims skink skins skint skips skirl skirr skirt skite skits skive skoal skosh skuas skulk skull skunk slabs slack slags slain slake slams slang slant slaps slash slate slats slaty slave slays sleds sleek sleep sleet slept slews slice slick slide slier slime slims slimy sling slink slips slits slobs sloes slogs sloop slope slops slosh sloth slots slows slubs slued slues sluff slugs slump slums slung slunk slurp slurs slush sluts slyly slype smack small smalt smarm smart smash smaze smear smell smelt smews smile smirk smite smith smock smogs smoke smoko smoky smolt smote smurf smuts snack snafu snags snail snake snaky snaps snare snarf snark snarl snath sneak sneck sneer snick snide sniff snipe snips snits snobs snogs snood snook snoop snoot snore snort snots snout snows snowy snubs snuff snugs soaks soaps soapy soars soave sober socks socle sodas sofar sofas softa softy soggy soils solan solar soldo soled soles solid solon solos solus solve somas sonar sonde sones songs sonic sonly sonny sooth sooty sopor soppy sorbs sorer sores sorgo sorry sorta sorts sorus sough souks souls sound soups soupy sours souse south sowed sower space spade spahi spake spall spams spang spank spans spare spark spars spasm spate spats spawn spays speak spear speck specs speed spell spend spent speos sperm spews spica spice spics spicy spied spiel spier spies spiff spike spiky spile spill spine spins spiny spire spiry spite spits spitz spivs splat splay split spoil spoke spoof spook spool spoon spoor spore sport spots spout sprag sprat spray spree sprig sprit sprog sprue spuds spued spues spume spumy spunk spurn spurs spurt sputa squab squad squat squaw squib squid sruti stabs stacc stack staff stage stags stagy staid stain stair stake stale stalk stall stamp stand stane stang stank staph stare stark stars start stash state stats stave stays stdio stead steak steal steam steed steel steep steer stein stela stele stems steno stent steps stere stern stets stews stich stick sties stiff stile still stilt sting stink stint stipe stirk stirs stoat stock stoic stoke stole stoma stomp stone stony stood stook stool stoop stope stops store stork storm story stoss stoup stout stove stows strap straw stray strep strew stria strip strop strow stroy strum strut stubs stuck studs study stuff stull stump stung stunk stuns stunt stupa stupe style styli suave sucks sucre sudor sudsy suede suety sugar suing suint suite suits sulci sulfa sulks sulky sully sumac summa sumps sunny sunup super suppl supra surah sural suras surds surer surfs surge surgy surly surra sushi sutra swabs swage swags swain swale swami swamp swank swans swaps sward swarm swart swash swath swats sways swear sweat swede sweep sweet swell swept swift swigs swill swims swine swing swink swipe swirl swish swizz swoon swoop sword swore sworn swots swung sycee sylph syncs synod synop synth syrup sysop tabby tabes tabla table taboo tabor tacet tache tacit tacks tacky tacos taffy tafia taiga tails taint takas taken taker takes takin talas taler tales talks talky tally talon taluk talus tamed tamer tames tamis tammy tamps tango tangs tangy tanka tanks tansy tanto tapas taped taper tapes tapir tapis tardy tared tares targe tarns taros tarot tarps tarry tarsi tarts tarty taser tasks tasse taste tasty tater tatty taunt taupe tawny taxed taxer taxes taxis taxon tayra tazza teach teaks teals teams tears teary tease teats techs techy teddy teems teens teeny teeth teleg telex telic tells telly tempo temps tempt tench tends tenet tenge tenia tenne tenno tenon tenor tense tenth tents tepee tepid terce terms terns terra terry terse tesla testa tests testy teths tetra texts thane thank thaws thebe theca thees theft thegn their theme theol there therm these theta thews thewy thick thief thigh thill thine thing think thins thiol third thole thong thorn thorp those thous three threw throb throe throw thrum thuds thugs thuja thumb thump thunk thuya thyme tiara tibia tical ticks tidal tided tides tiers tiffs tiger tight tigon tilde tiled tiler tiles tills tilth tilts timed timer times timid tinct tinea tined tines tinge tings tinny tints tipsy tired tires titan titch titer tithe titis title titty tizzy toads toady toast today toddy toeas toffs togas toile toils tokay toked token tokes tolan tolar tolls tolly tolus tolyl tombs tomes tonal toned toner tones tonga tongs tonic tonne tonus tools tooth toots topaz toped topee toper topes topic topog toque torch torii torrs torse torsk torso torte torts torus total toted totem toter totes touch tough tours touts towed towel tower towns toxic toxin toyed trace track tract trade trail train trait tramp trams trans traps trash trass trave trawl trays tread treas treat treed treen trees treks trend tress trews treys triad trial tribe trice trick tried trier tries trike trill trims trine trios tripe trips trite troat troll tromp trona trons troop trope troth trots trout trove trows troys truce truck trued truer trues trugs trull truly trump trunk truss trust truth tryma tryst tubal tubas tubby tubed tuber tubes tucks tufts tufty tulip tulle tumid tummy tumor tunas tuned tuner tunes tunic tunny tuple tuque turbo turds turfs turfy turns turps tushy tusks tutor tutti tutty tutus tuxes twain twang twats tweak tweed tween tweet twerk twerp twice twigs twill twine twink twins twirl twist twits twixt tying tykes typal typed types typos tyros udder uhlan ukase ulcer ulema ulnae ulnar ultra umbel umber umbra umiak umped unapt unarm unary unbar unbid unbox uncap uncle uncut under undid undue unfed unfit unfix unify union unite unity unjam unlay unlit unman unmet unpeg unpen unpin unrig unsay unset unsex untie until unwed unwon unzip upend upped upper upset urban uredo urged urger urges urial urine usage users usher using usual usurp usury uteri utile utter uveas uvula vagal vague vagus vales valet valid valor valse value valve vamps vampy vanda vanes vaped vapes vapid vapor varas varia varix varus varve vases vasts vasty vatic vault vaunt vedic veeps veers veery vegan veges veils veins veiny velar velds velum venae venal vends venge venin venom vents venue verbs verge versa verse verso verst vertu verve vesta vests vetch veter vexed vexes vials viand vibes vicar viced vices video views viewy vigil vigor viler villa villi vimen vines vinic vinyl viola viols viper viral vireo virga virtu virus visas vised vises visit visor vista vitae vital vitta vivas vivid vixen vocab vocal vodka vogue voice voids voila voile volar voles volts volva vomer vomit voted voter votes vouch vouge vowed vowel vower vulva vying wacke wacko wacks wacky waded wader wades wadge wadis wafer wafts waged wager wages wagon wahoo waifs wails wains waist waits waive waked waken wakes waldo waled wales walks walls wally waltz wands waned wanes wanks wanly wanna wants wards wares warez warms warns warps warts warty washy wasps waste watch water watts waved waver waves waxed waxen waxes wazoo weald weals weans wears weary weave webby weber wedge weeds weedy weeks weens weeny weeps weepy weest wefts weigh weird weirs wekas welds wells welly welsh welts wench wends wersh wetly whack whale whams whaps wharf whats wheal wheat wheel wheen whelk whelm whelp whens where whets which whiff while whims whine whins whiny whips whipt whirl whirs whish whisk whist white whits whity whole whomp whoop whops whore whorl whose whoso whsle whups wicks widen wider wides widow width wield wight wikis wilds wiled wiles wills willy wilts wimps wimpy wince winch winds windy wined wines wings winks winos winze wiped wiper wipes wired wirer wires wirra wised wiser wises wisps wispy witch withe withy witty wived wives wizen woald wodge woken wolds wolfs woman wombs women wonks wonky woods woody wooed wooer woofs wools woops woozy words wordy works world worms wormy worry worse worst worth would wound woven wowed wrack wraps wrath wreak wreck wrens wrest wring wrist write writs wrong wrote wroth wrung wryer wryly wurst wussy xcvii xebec xenia xenon xeric xerox xrefs xterm xviii xxiii xxvii xxxii xxxiv xxxix xxxvi xylem xylol yacht yahoo yakka yamen yanks yapok yapon yappy yards yarns yawed yawls yawns yawps yeahs yeans yearn years yeast yeggs yells yelps yenta yeses yetis yield yikes yobbo yodel yodle yogic yogis yoked yokel yokes yolks yonks young yours youth yowls yucca yucky yukky yulan yummy yurts zaire zamia zappy zarfs zayin zazen zebec zebra zebus zeros zests zesty zetas zibet zilch zincs zines zings zingy zippy zitis zloty zonal zoned zones zooid zooms zorch zoril".split(" "));
+const POOLS=[TIERS.easy,TIERS.med,TIERS.hard];
+const ANSWERS=[...TIERS.easy,...TIERS.med,...TIERS.hard];
+ANSWERS.forEach(w=>DICT.add(w));
+function makeWordle(){
+  const R=targetRating("wordle");const tier=R<1050?0:R<1450?1:2;
+  return{answer:POOLS[tier][rnd(POOLS[tier].length)],guesses:[],cur:"",hard:R>=1700,tier,puzzleR:R,keys:{},done:false,tipsUsed:0};
+}
+function score(g,ans){const res=Array(5).fill("a"),pool={};
+  for(let i=0;i<5;i++){if(g[i]===ans[i])res[i]="c";else pool[ans[i]]=(pool[ans[i]]||0)+1}
+  for(let i=0;i<5;i++)if(res[i]!=="c"&&pool[g[i]]){res[i]="p";pool[g[i]]--}return res}
+const code=r=>r.reduce((n,x)=>n*3+(x==="c"?2:x==="p"?1:0),0);
+const _cnt=new Int8Array(26),_g=new Int8Array(5),_a=new Int8Array(5),_r=new Int8Array(5);
+function fastCode(g,a){ // same result as code(score(g,a)), without allocations
+  _cnt.fill(0);for(let i=0;i<5;i++){_g[i]=g.charCodeAt(i)-97;_a[i]=a.charCodeAt(i)-97;if(_g[i]===_a[i])_r[i]=2;else{_r[i]=0;_cnt[_a[i]]++}}
+  let n=0;for(let i=0;i<5;i++){if(_r[i]!==2&&_cnt[_g[i]]>0){_r[i]=1;_cnt[_g[i]]--}n=n*3+_r[i]}return n}
+function fits(word,guesses){return guesses.every(g=>fastCode(g.w,word)===code(g.res))}
+function hardCheck(guesses,w){for(const g of guesses){for(let i=0;i<5;i++)if(g.res[i]==="c"&&w[i]!==g.w[i])return`Letter ${i+1} must be ${g.w[i].toUpperCase()}`;
+  for(let i=0;i<5;i++)if(g.res[i]==="p"&&!w.includes(g.w[i]))return`Guess must contain ${g.w[i].toUpperCase()}`}return null}
+function bestGuess(cands,s){
+  const tried=new Set(s.guesses.map(g=>g.w));
+  const freq={};cands.forEach(w=>new Set(w).forEach(ch=>freq[ch]=(freq[ch]||0)+1));
+  const lscore=w=>[...new Set(w)].reduce((n,ch)=>n+(freq[ch]||0),0);
+  let pool=[...DICT].filter(w=>!tried.has(w)&&(!s.hard||!hardCheck(s.guesses,w)));
+  pool.sort((a,b)=>lscore(b)-lscore(a));pool=pool.slice(0,350);
+  const cset=new Set(cands);cands.forEach(w=>{if(!pool.includes(w))pool.push(w)});
+  let best=null;
+  for(const gw of pool){const m=new Map();for(const a of cands){const k=fastCode(gw,a);m.set(k,(m.get(k)||0)+1)}
+    let H=0,big=0;m.forEach(v=>{const p=v/cands.length;H-=p*Math.log2(p);big=Math.max(big,v)});
+    const val=H+(cset.has(gw)?0.25/cands.length+0.02:0);
+    if(!best||val>best.val)best={w:gw,val,groups:m.size,big,isCand:cset.has(gw)}}
+  return best;
+}
+const OPENER={false:{w:"crate",groups:124,big:65,isCand:true},true:{w:"crate",groups:124,big:65,isCand:true}}; // precomputed best first guess
+function wordleTip(s){
+  const left=6-s.guesses.length;const cands=ANSWERS.filter(w=>fits(w,s.guesses));
+  const W_=w=>`<span class="tipword">${w.toUpperCase()}</span>`;
+  const typeIt=w=>({label:"Type it in",fn:()=>{s.cur=w;drawWordle()}});
+  if(!s.guesses.length){const b=OPENER[s.hard]||(OPENER[s.hard]=bestGuess(cands,s));
+    return{title:"Open wide",strategy:"Your first guess should test five different, common letters. Vowels like A, E and O plus R, S, T, L and N rule out the most words at once.",
+      move:`Try ${W_(b.w)}. Across all possible answers it gives ${b.groups} different color patterns, so it narrows things down quickly.`,action:typeIt(b.w)}}
+  if(cands.length===1)return{title:"Only one word fits",strategy:"Go back over every green, yellow and grey tile. Only one word satisfies all of them, so guess it.",move:`It's ${W_(cands[0])}.`,action:typeIt(cands[0])};
+  if(left===1||cands.length===2){const pickW=cands[0];
+    return{title:cands.length===2?"Two words left":"Last guess",strategy:cands.length===2?"Only two words still fit your clues. Guess one of them. If it's wrong, you'll know the other one for sure.":`This is your last guess, so play a word that could be the answer. ${cands.length} words still fit.`,
+      move:`Guess ${W_(pickW)}.${cands.length>1&&cands.length<=6?` The words that fit are ${cands.map(w=>w.toUpperCase()).join(", ")}.`:""}`,action:typeIt(pickW)}}
+  const b=bestGuess(cands,s);
+  const known=[];s.guesses.forEach(g=>g.res.forEach((r,i)=>{if(r!=="a"&&!known.includes(g.w[i]))known.push(g.w[i])}));
+  return{title:"Split the field",strategy:`${cands.length} likely words still fit${known.length?` (you know ${known.map(c=>c.toUpperCase()).join(", ")})`:""}. Don't just guess one of them. Play a word${s.hard?" that keeps your clues (hard mode)":""} whose letters differ across those words, so whatever colors come back, few words remain.`,
+    move:`Try ${W_(b.w)}. It splits the ${cands.length} words into ${b.groups} groups, and the largest has ${b.big} word${b.big>1?"s":""}.${b.isCand?" It could also be the answer.":""}${cands.length<=6?` The words that fit are ${cands.map(w=>w.toUpperCase()).join(", ")}.`:""}`,action:typeIt(b.w)};
+}
+function renderWordle(){
+  const s=sessions.wordle,st=$("#stage");
+  st.innerHTML=`<div class="info"><span>Word list <b>${["Everyday","Uncommon","Rare"][s.tier]}</b></span>${s.hard?'<span class="badge">Hard mode</span>':"<span>6 guesses</span>"}</div>
+   <div class="wboard" id="wb"></div><div class="kb" id="kb"></div><div class="tools" id="tl"></div>`;
+  $("#tl").appendChild(tipButton(()=>showTip(wordleTip(s))));
+  st.appendChild(giveUpButton(()=>finish("wordle",false,0,`The word was <b>${s.answer.toUpperCase()}</b>.`)));
+  const rows=["qwertyuiop","asdfghjkl","+zxcvbnm-"];
+  $("#kb").innerHTML=rows.map(r=>`<div class="kr">${[...r].map(k=>k==="+"?'<button class="k wide" data-k="enter">Enter</button>':k==="-"?'<button class="k wide" data-k="back" aria-label="Delete">⌫</button>':`<button class="k" data-k="${k}">${k}</button>`).join("")}</div>`).join("");
+  $("#kb").querySelectorAll(".k").forEach(b=>b.onclick=()=>wKey(b.dataset.k));
+  drawWordle();
+}
+function drawWordle(flipRow){
+  const s=sessions.wordle,wb=$("#wb");if(!wb||!s)return;let h="";
+  for(let r=0;r<6;r++){h+='<div class="wrow">';const g=s.guesses[r];
+    for(let c=0;c<5;c++){if(g){const anim=r===flipRow?`style="animation-delay:${c*.12}s"`:'style="animation:none"';h+=`<div class="wt ${g.res[c]}" ${anim}>${g.w[c]}</div>`}
+      else if(r===s.guesses.length){const ch=s.cur[c]||"";h+=`<div class="wt${ch?" filled":""}">${ch}</div>`}else h+='<div class="wt"></div>'}
+    h+="</div>"}
+  wb.innerHTML=h;
+  $("#kb").querySelectorAll(".k[data-k]").forEach(b=>{const st=s.keys[b.dataset.k];b.classList.remove("c","p","a");if(st)b.classList.add(st)});
+}
+function shakeRow(){const rows=document.querySelectorAll(".wrow"),r=rows[sessions.wordle.guesses.length];if(r){r.classList.remove("bad");void r.offsetWidth;r.classList.add("bad")}}
+function wKey(k){
+  const s=sessions.wordle;if(!s||s.done)return;
+  if(k==="back"){s.cur=s.cur.slice(0,-1);drawWordle();return}
+  if(k==="enter"){
+    if(s.cur.length<5){toast("Five letters needed");shakeRow();return}
+    if(!DICT.has(s.cur)){toast("Not in the word list");shakeRow();return}
+    if(s.hard){const e=hardCheck(s.guesses,s.cur);if(e){toast(e);shakeRow();return}}
+    hideTip();
+    const res=score(s.cur,s.answer),w=s.cur;s.guesses.push({w,res});s.cur="";
+    const rank={a:1,p:2,c:3};for(let i=0;i<5;i++){const o=s.keys[w[i]];if(!o||rank[res[i]]>rank[o])s.keys[w[i]]=res[i]}
+    drawWordle(s.guesses.length-1);const n=s.guesses.length;
+    if(w===s.answer){const S=Math.max(.3,[1,1,1,1,.9,.75,.6][n]-TIP_COST*s.tipsUsed);setTimeout(()=>finish("wordle",true,S,`Got <b>${s.answer.toUpperCase()}</b> in ${n} guess${n>1?"es":""}.`),600)}
+    else if(n>=6)setTimeout(()=>finish("wordle",false,0,`The word was <b>${s.answer.toUpperCase()}</b>.`),600);
+    return}
+  if(/^[a-z]$/.test(k)&&s.cur.length<5){s.cur+=k;drawWordle()}
+}
+
+/* ---------- Mastermind ---------- */
+const MM_LEVELS=[ // [from rating, pegs, colors, repeats allowed, guesses, par guesses]
+  [0,4,6,false,10,5],[950,4,6,true,10,5.5],[1300,5,7,true,10,6.5],[1700,5,8,true,10,7],[2100,5,8,true,8,7]];
+function mmLevel(R){let L=MM_LEVELS[0];for(const l of MM_LEVELS)if(R>=l[0])L=l;return L}
+function mmFeedback(g,s){let ex=0;const cg=new Array(8).fill(0),cs=new Array(8).fill(0);
+  for(let i=0;i<g.length;i++){if(g[i]===s[i])ex++;else{cg[g[i]]++;cs[s[i]]++}}
+  let cl=0;for(let c=0;c<8;c++)cl+=Math.min(cg[c],cs[c]);return ex*10+cl}
+function mmAll(s){const out=[];const n=Math.pow(s.C,s.L);
+  for(let k=0;k<n;k++){const code=[];let x=k;for(let i=0;i<s.L;i++){code.push(x%s.C);x=(x/s.C)|0}
+    if(!s.dup&&new Set(code).size<s.L)continue;out.push(code)}return out}
+function makeMastermind(){
+  const R=targetRating("mastermind"),[,L,C,dup,max,par]=mmLevel(R);
+  let secret=[];if(dup)for(let i=0;i<L;i++)secret.push(rnd(C));else secret=shuffle([...Array(C).keys()]).slice(0,L);
+  return{L,C,dup,max,par,secret,rows:[],cur:new Array(L).fill(-1),slot:0,puzzleR:R,done:false,tipsUsed:0};
+}
+function mmCands(s){return mmAll(s).filter(c=>s.rows.every(r=>mmFeedback(r.code,c)===r.fb))}
+const mmName=code=>code.map(c=>MM_NAMES[c]).join(", ");
+const mmChips=code=>`<span class="mmchips">${code.map(c=>`<i style="background:${MM_COLORS[c]}">${c+1}</i>`).join("")}</span>`;
+function mmTip(s){
+  const left=s.max-s.rows.length,fill=code=>({label:"Fill it in",fn:()=>{s.cur=code.slice();s.slot=s.L;drawMM()}});
+  if(!s.rows.length){
+    const code=s.dup?[...Array(s.L)].map((_,i)=>Math.min((i/2)|0,s.C-1)):[...Array(s.L).keys()];
+    return{title:s.dup?"Open with pairs":"Open with different colors",
+      strategy:s.dup?"Start with pairs of colors, like two reds and two oranges. Doubles tell you both which colors are in the code and how many times, and the answers split the possible codes evenly.":"Repeats aren't allowed in this code, so open with as many different colors as possible to learn which colors are in it.",
+      move:`Try ${mmChips(code)} (${mmName(code)}).`,action:fill(code)};
+  }
+  const cands=mmCands(s);
+  if(cands.length===1)return{title:"Only one code fits",strategy:"Check every row's pins against each other. Just one code satisfies all of them, so play it.",move:`It's ${mmChips(cands[0])} (${mmName(cands[0])}).`,action:fill(cands[0])};
+  if(cands.length===2||left===1)return{title:cands.length===2?"Two codes left":"Last guess",
+    strategy:cands.length===2?"Only two codes fit your clues. Play one of them. If it's wrong, the other one is the answer.":`This is your last guess, so play a code that could be the answer. ${cands.length} codes still fit.`,
+    move:`Play ${mmChips(cands[0])} (${mmName(cands[0])}).`,action:fill(cands[0])};
+  // Pick the guess that splits the remaining codes into the most groups (sampled when the field is large)
+  const all=mmAll(s),sample=(a,n)=>a.length<=n?a:shuffle(a.slice()).slice(0,n);
+  const evalSet=sample(cands,1500),pool=[...sample(cands,250),...sample(all,150)];
+  const cset=new Set(cands.map(c=>c.join()));let best=null;
+  for(const g of pool){const m=new Map();for(const c of evalSet){const k=mmFeedback(g,c);m.set(k,(m.get(k)||0)+1)}
+    let H=0,big=0;m.forEach(v=>{const p=v/evalSet.length;H-=p*Math.log2(p);big=Math.max(big,v)});
+    const isC=cset.has(g.join()),val=H+(isC?0.1:0);if(!best||val>best.val)best={g,val,groups:m.size,big,isC}}
+  const scale=cands.length/evalSet.length;
+  return{title:"Split the possibilities",strategy:`${cands.length} codes still fit every row. Rather than guessing one at random, play a code that tests the open questions: which colors are in it and where they sit. A good guess leaves few codes whatever pins come back.`,
+    move:`Play ${mmChips(best.g)} (${mmName(best.g)}). The pins it can give split the ${cands.length} codes into ${best.groups} groups, the largest about ${Math.max(1,Math.round(best.big*scale))}.${best.isC?" It could also be the code.":""}`,action:fill(best.g)};
+}
+function renderMastermind(){
+  const s=sessions.mastermind,st=$("#stage");
+  st.innerHTML=`<div class="info"><span><b>${s.L}</b> pegs · <b>${s.C}</b> colors</span><span>${s.dup?"Repeats allowed":"No repeats"}</span><span><b id="mmLeft">${s.max-s.rows.length}</b> tries</span></div>
+   <div class="mmboard" id="mmb" style="--L:${s.L}"></div>
+   <p class="rule"><span class="pin ex"></span> right color, right spot &nbsp; <span class="pin cl"></span> right color, wrong spot</p>
+   <div class="mmpal" id="mmpal" style="--C:${s.C}"></div>
+   <div class="tools" id="tl"><button class="tool" id="mmDel">⌫ Delete</button><button class="tool on" id="mmGo">Check</button></div>`;
+  $("#mmpal").innerHTML=[...Array(s.C).keys()].map(c=>`<button class="peg" style="background:${MM_COLORS[c]}" data-c="${c}" aria-label="${MM_NAMES[c]}">${c+1}</button>`).join("");
+  $("#mmpal").querySelectorAll(".peg").forEach(b=>b.onclick=()=>mmPut(+b.dataset.c));
+  $("#mmDel").onclick=mmDel;$("#mmGo").onclick=mmCheck;
+  $("#tl").appendChild(tipButton(()=>showTip(mmTip(s))));
+  st.appendChild(giveUpButton(()=>finish("mastermind",false,0,`The code was ${mmChips(s.secret)}.`)));
+  drawMM();
+}
+function drawMM(){
+  const s=sessions.mastermind,b=$("#mmb");if(!b||!s)return;let h="";
+  for(let r=0;r<s.max;r++){const row=s.rows[r],active=r===s.rows.length&&!s.done;
+    const code=row?row.code:active?s.cur:null;
+    h+=`<div class="mmrow${active?" act":""}"><span class="mmn">${r+1}</span><div class="mmpegs">`;
+    for(let i=0;i<s.L;i++){const c=code?code[i]:-1;
+      h+=`<button class="peg slot${c<0?" empty":""}${active&&i===s.slot?" sel":""}" ${active?`data-i="${i}"`:'tabindex="-1"'} style="${c>=0?`background:${MM_COLORS[c]}`:""}" aria-label="${c>=0?MM_NAMES[c]:"empty"}">${c>=0?c+1:""}</button>`}
+    h+=`</div><div class="pins" style="--L:${s.L}">`;
+    if(row){const ex=(row.fb/10)|0,cl=row.fb%10;for(let i=0;i<s.L;i++)h+=`<span class="pin${i<ex?" ex":i<ex+cl?" cl":""}"></span>`}
+    else for(let i=0;i<s.L;i++)h+=`<span class="pin"></span>`;
+    h+=`</div></div>`}
+  b.innerHTML=h;
+  b.querySelectorAll(".act .slot").forEach(e=>e.onclick=()=>{s.slot=+e.dataset.i;if(s.cur[s.slot]>=0&&e.classList.contains("sel"))s.cur[s.slot]=-1;drawMM()});
+  const l=$("#mmLeft");if(l)l.textContent=s.max-s.rows.length;
+  const act=b.querySelector(".act");if(act&&s.rows.length>5)act.scrollIntoView({block:"nearest"});
+}
+function mmPut(c){const s=sessions.mastermind;if(!s||s.done)return;
+  if(!s.dup&&s.cur.includes(c)&&s.cur[s.slot]!==c){toast("No repeats in this code");return}
+  if(s.slot>=s.L){const e=s.cur.indexOf(-1);if(e<0)return;s.slot=e}
+  s.cur[s.slot]=c;const nx=s.cur.indexOf(-1,s.slot+1),any=s.cur.indexOf(-1);s.slot=nx>=0?nx:any>=0?any:s.L;drawMM()}
+function mmDel(){const s=sessions.mastermind;if(!s||s.done)return;
+  let i=s.slot<s.L&&s.cur[s.slot]>=0?s.slot:-1;if(i<0)for(let k=s.L-1;k>=0;k--)if(s.cur[k]>=0){i=k;break}
+  if(i>=0){s.cur[i]=-1;s.slot=i;drawMM()}}
+function mmCheck(){const s=sessions.mastermind;if(!s||s.done)return;
+  if(s.cur.includes(-1)){toast(`Fill all ${s.L} pegs first`);return}
+  hideTip();const code=s.cur.slice(),fb=mmFeedback(code,s.secret);s.rows.push({code,fb});s.cur=new Array(s.L).fill(-1);s.slot=0;drawMM();
+  const n=s.rows.length;
+  if(fb===s.L*10){const S=clamp(0.5+0.15*(s.par-n),0.05,1)-TIP_COST*s.tipsUsed;
+    setTimeout(()=>finish("mastermind",true,Math.max(.05,S),`Cracked in ${n} guess${n>1?"es":""} (par ${s.par}).`),300)}
+  else if(n>=s.max)setTimeout(()=>finish("mastermind",false,0,`The code was ${mmChips(s.secret)}.`),300);
+}
+
+const MAKERS={sudoku:makeSudoku,numbers:makeNumbers,wordle:makeWordle,mastermind:makeMastermind};
+const RENDER={sudoku:renderSudoku,numbers:renderNumbers,wordle:renderWordle,mastermind:renderMastermind};
+
+document.addEventListener("keydown",e=>{
+  if(!cur||!sessions[cur]||e.metaKey||e.ctrlKey||e.altKey||document.querySelector(".scrim"))return;
+  if(e.key==="Escape"&&tipState){hideTip();return}
+  if(cur==="mastermind"){if(e.key==="Enter")mmCheck();else if(e.key==="Backspace")mmDel();else if(/^[1-8]$/.test(e.key)&&+e.key<=sessions.mastermind.C)mmPut(+e.key-1);else return;e.preventDefault();return}
+  if(cur==="wordle"){if(e.key==="Enter")wKey("enter");else if(e.key==="Backspace")wKey("back");else if(/^[a-zA-Z]$/.test(e.key))wKey(e.key.toLowerCase());else return;e.preventDefault()}
+  else if(cur==="sudoku"){const s=sessions.sudoku;
+    if(/^[1-9]$/.test(e.key))sdkInput(+e.key);else if(e.key==="Backspace"||e.key==="Delete")sdkErase();
+    else if(e.key==="n"){s.notesMode=!s.notesMode;drawSudoku()}
+    else if(e.key.startsWith("Arrow")){const i=s.sel<0?40:s.sel,r=(i/9)|0,c=i%9;
+      const m={ArrowUp:[-1,0],ArrowDown:[1,0],ArrowLeft:[0,-1],ArrowRight:[0,1]}[e.key];s.sel=clamp(r+m[0],0,8)*9+clamp(c+m[1],0,8);drawSudoku();e.preventDefault()}}
+});
+window.__arcade={mmTip,mmCands,mmFeedback,makeMastermind,sdkScore,sdkSecs,applyElo,sudokuTip,numbersTip,wordleTip,nmPairs,nmCan,makeSudoku,makeNumbers,makeWordle,sessions,DICT,ANSWERS,fits,bestGuess,get store(){return store}};
+showHome();
+Acct.start();
+})();
+</script>
+<script>
+if("serviceWorker" in navigator){addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}))}
+if(navigator.storage&&navigator.storage.persist){navigator.storage.persist().catch(()=>{})}
+</script>
+</body>
+</html>
