@@ -5,7 +5,7 @@ A phone-first PWA with four puzzle games (Sudoku, Number Match, Wordle, Mastermi
 ## Files
 
 - `index.html`: the whole app. CSS in one `<style>` block, all JS in one IIFE `<script>`. Sections are marked with `/* ---------- Name ---------- */` comments: Ratings, Accounts, Shell, Rules, Tip card, Sudoku, Number Match, Wordle, Mastermind, Farm.
-- The Farm is not a rated game and is not in `GAMES`. It is a persistent idle world: crops and animals run on real timestamps, so everything is computed from `Date.now()` when you look (`fPlot`, `fAni`, `fUpdate`) rather than simulated.
+- The Farm is not a rated game and is not in `GAMES`. It is a 2D garden sandbox drawn on a `<canvas>` (`fDrawWorld`) and driven by a `requestAnimationFrame` loop (`fLoop`). Game time only passes while the farm is open: 15 s per game hour, days run 06:00–18:00. `F.phase` moves day → market → stall → shop → next day. Canvas art colors are plain constants in the drawing code, like `MM_COLORS`.
 - `config.js`: Supabase URL and publishable key (`window.ARCADE_CONFIG`). Empty means local-only mode. The key is public by design.
 - `sw.js`: service worker. Network-first for app files, cache-first for Google Fonts.
 - `manifest.webmanifest` and the `icon-*.png` files: PWA install metadata.

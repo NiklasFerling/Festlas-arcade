@@ -201,53 +201,50 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--acc);outline-of
 .g-mm{display:grid;grid-template-columns:repeat(2,18px);gap:5px}
 .g-mm i{width:18px;height:18px;border-radius:50%}
 
-/* Farm: no rating, a little world that keeps growing while you're away */
+/* Farm: an unrated 2D garden. Pick a tool, tap tiles, the farmer walks over and does the jobs in order */
 .g-farm{font-size:2.1rem;line-height:1}
-.fbar{display:flex;align-items:center;gap:12px;font-weight:800}
-.fcoins{font:700 1.25rem var(--f-mono);font-variant-numeric:tabular-nums}
-.flv{font-size:.85rem;color:var(--muted);white-space:nowrap}
-.fxp{flex:1;height:8px;border-radius:99px;background:var(--soft);overflow:hidden}
-.fxp i{display:block;height:100%;background:var(--farm);border-radius:99px}
+.fbar{display:flex;align-items:center;gap:10px;font-weight:800}
+.fday{font:400 1rem var(--f-display);color:var(--farm)}
+.fclock{font:700 .95rem var(--f-mono);color:var(--muted);font-variant-numeric:tabular-nums}
+.fcoins{font:700 1.15rem var(--f-mono);font-variant-numeric:tabular-nums;margin-left:auto}
 .coin{display:inline-block;width:.8em;height:.8em;border-radius:50%;background:var(--tip);box-shadow:inset 0 -2px 0 rgba(0,0,0,.2);vertical-align:-.06em;margin-left:3px}
-.ftabs{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:4px}
-.ftab{padding:9px 2px;border-radius:10px;font-weight:800;font-size:.85rem;position:relative}
-.ftab.on{background:var(--farm);color:var(--surface)}
-.ftab b{position:absolute;top:-6px;right:-2px;min-width:18px;height:18px;padding:0 4px;box-sizing:border-box;border-radius:9px;background:var(--num);color:#fff;font:700 .68rem/18px var(--f-mono)}
 .fpanel{display:flex;flex-direction:column;gap:10px}
-.seeds{display:flex;gap:6px;overflow-x:auto;padding:2px 2px 6px;margin:0 -2px}
-.seed{flex:none;display:flex;flex-direction:column;align-items:center;gap:1px;min-width:56px;padding:6px 6px 5px;border-radius:12px;background:var(--surface);border:1px solid var(--line);font:700 .74rem var(--f-mono)}
-.seed span{font-size:1.45rem;line-height:1.2}
-.seed.on{border-color:var(--farm);box-shadow:inset 0 0 0 2px var(--farm)}
-.seed b{font-weight:700;white-space:nowrap}
-.seed[disabled]{opacity:.45}
-.fields{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
-.plot{aspect-ratio:1;border-radius:12px;background:var(--soil);display:grid;place-items:center;position:relative;font-size:2rem;padding:0;overflow:hidden;box-shadow:inset 0 -4px 0 rgba(0,0,0,.12)}
-.plot .crop{display:inline-block;line-height:1;transition:transform .9s linear}
-.plot.grow{background:var(--soilWet)}
-.plot.dry::after{content:"💧";position:absolute;top:4px;right:5px;font-size:.85rem}
-.plot.ready{background:var(--soilWet);box-shadow:inset 0 0 0 3px var(--tip)}
-.plot.ready .crop{animation:bob 1.6s ease-in-out infinite}
-@keyframes bob{50%{transform:translateY(-4px)}}
-.plot.buy{background:transparent;border:2px dashed var(--line);box-shadow:none;font:800 .78rem/1.3 var(--f-body);color:var(--muted)}
-.pb{position:absolute;left:8px;right:8px;bottom:7px;height:5px;border-radius:3px;background:rgba(0,0,0,.2);overflow:hidden}
-.pb i{display:block;height:100%;background:var(--farm)}
-.fh{font:400 1rem var(--f-display);margin:6px 0 0;color:var(--farm)}
+.fworld{display:block;width:100%;border-radius:14px;touch-action:none;box-shadow:0 0 0 1px var(--line)}
+.ftools{display:flex;gap:6px}
+.ftool{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:1px;padding:6px 2px;border-radius:12px;background:var(--surface);border:1px solid var(--line);font:700 .72rem var(--f-mono);white-space:nowrap}
+.ftool span{font-size:1.35rem;line-height:1.2}
+.ftool.on{border-color:var(--farm);box-shadow:inset 0 0 0 2px var(--farm)}
+.fh{font:400 1.05rem var(--f-display);margin:4px 0 0;color:var(--farm)}
 .fcard{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px;display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center}
-.fcard.lock{opacity:.6}
+.fcard.lock{opacity:.55}
 .fcard .em{font-size:1.8rem;line-height:1}
 .fcard small{color:var(--muted);display:block;font-size:.8rem}
 .fcol{display:flex;flex-direction:column;gap:6px}
 .fbtn{padding:9px 12px;border-radius:10px;font-weight:800;font-size:.85rem;background:var(--farm);color:var(--surface);white-space:nowrap}
 .fbtn.ghost{background:var(--soft);color:var(--ink)}
+.fbtn.arm{background:var(--bad);color:#fff}
 .fbtn[disabled]{opacity:.4}
-.need{display:flex;flex-wrap:wrap;gap:5px;margin:4px 0 3px}
-.need span{font:700 .8rem var(--f-mono);padding:2px 6px;border-radius:6px;background:var(--soft)}
-.need span.miss{color:var(--bad)}
-.pen{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:8px}
-.ani{width:56px;height:56px;border-radius:12px;background:var(--soft);font-size:1.7rem;display:grid;place-items:center;position:relative;padding:0}
-.ani.ready{box-shadow:inset 0 0 0 3px var(--tip)}
-.ani .prod{position:absolute;top:-4px;right:-4px;font-size:1.1rem}
-.ani .pb{left:7px;right:7px;bottom:5px;height:4px}
+.fbig{padding:14px;font-size:1rem;border-radius:14px}
+.dem{font-weight:800}
+.dem.d0{color:var(--bad)} .dem.d1{color:var(--warn)} .dem.d2{color:var(--muted)} .dem.d3,.dem.d4{color:var(--ok)}
+.step{display:flex;align-items:center;gap:4px}
+.step button{width:34px;height:34px;border-radius:10px;background:var(--soft);font-weight:800;font-size:1.1rem;padding:0}
+.step b{min-width:46px;text-align:center;font:700 1rem var(--f-mono)}
+.fspark{display:block;margin-top:4px}
+.lane{position:relative;height:130px;border-radius:14px;overflow:hidden;border:1px solid var(--line);background:linear-gradient(var(--soft) 0 62%,var(--soil) 62%)}
+.stallbox{position:absolute;left:50%;bottom:8px;transform:translateX(-50%);width:156px}
+.awn{height:24px;border-radius:8px 8px 2px 2px;background:repeating-linear-gradient(90deg,var(--num) 0 15px,var(--surface) 15px 30px)}
+.ctr{margin:26px 4px 0;height:34px;border-radius:4px;background:var(--soilWet);display:flex;align-items:center;justify-content:center;gap:2px;font-size:1.1rem;box-shadow:inset 0 -4px 0 rgba(0,0,0,.2)}
+.shopper{z-index:1}
+.shopper{position:absolute;bottom:22px;left:-12%;font-size:2rem;line-height:1;animation:walk 2.8s linear forwards}
+@keyframes walk{to{left:105%}}
+.bub{position:absolute;bottom:105%;left:50%;transform:translateX(-50%);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:2px 7px;font:700 .72rem var(--f-mono);white-space:nowrap}
+.bub.yes{color:var(--ok)} .bub.no{color:var(--muted)}
+.ftotal{text-align:center;font:700 1.4rem var(--f-mono)}
+.seedlist{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.seedlist button{display:flex;flex-direction:column;align-items:center;padding:10px 4px;border-radius:12px;background:var(--soft);font:700 .8rem var(--f-mono)}
+.seedlist button span{font-size:1.6rem}
+.seedlist button.on{box-shadow:inset 0 0 0 2px var(--farm)}
 
 /* Tip card */
 .tipcard{position:fixed;left:0;right:0;bottom:0;z-index:15;display:flex;justify-content:center;pointer-events:none;
@@ -448,9 +445,9 @@ function showHome(){
       <div class="glyph">${glyphs[g]}</div>
       <div><h2>${G.name}</h2><div class="meta">${s.games?`${s.games} played · ${Math.round(s.wins/s.games*100)}% solved`:G.desc}</div>${spark(s.hist,G.c)}</div>
       <div class="rt"><span class="rnum">${s.r}</span><span class="chip${live?" live":""}">${live?"Resume":rankOf(s.r)}</span></div></button>`}).join("")}
-    <button class="cab" id="farmB" style="--c:var(--farm)" aria-label="Open the farm, level ${F.lv}">
+    <button class="cab" id="farmB" style="--c:var(--farm)" aria-label="Open the farm, day ${F.day}">
       <div class="glyph g-farm">🌻</div><div><h2>Farm</h2><div class="meta">${fMeta()}</div></div>
-      <div class="rt"><span class="rnum">${F.lv}</span><span class="chip">Level</span></div></button></section>
+      <div class="rt"><span class="rnum">${F.day}</span><span class="chip">Day</span></div></button></section>
   <section class="howto">
     <div><b>How ratings work.</b> Everyone starts at 1000. Solving a puzzle rated above you earns more; failing one rated below you costs more. Your first 10 games in each puzzle move faster.</div>
     <div><b>What the rating changes.</b> Sudoku asks for harder techniques: pointing pairs, then pairs, X-Wings and beyond. Solving is what counts, and a quick clean solve earns a bonus so you reach your level fast. Number Match deals tighter boards and fewer adds. Wordle draws rarer words and switches on hard mode from 1700. Mastermind adds repeats, then more pegs and colors; cracking the code in fewer guesses scores higher.</div>
@@ -1048,156 +1045,273 @@ function mmCheck(){const s=sessions.mastermind;if(!s||s.done)return;
   else if(n>=s.max)setTimeout(()=>finish("mastermind",false,0,`The code was ${mmChips(s.secret)}.`),300);
 }
 
-/* ---------- Farm (no rating: a little world that keeps growing while you're away) ---------- */
-// Crops need water when sown and once more halfway. A thirsty crop just waits; nothing ever dies.
-const FKEY="eloArcade.farm",MIN=60000,CO='<i class="coin"></i>';
-const crop=(n,e,cost,min,price,lv)=>({n,e,cost,min,price,lv});
-const CROPS={carrot:crop("Carrot","🥕",2,1,6,1),lettuce:crop("Lettuce","🥬",4,3,12,1),potato:crop("Potato","🥔",6,5,18,2),tomato:crop("Tomato","🍅",10,10,32,3),
-  tulip:crop("Tulip","🌷",15,15,48,4),corn:crop("Corn","🌽",20,25,70,5),sunflower:crop("Sunflower","🌻",30,40,105,6),pumpkin:crop("Pumpkin","🎃",45,60,160,7),
-  strawberry:crop("Strawberry","🍓",60,90,230,9),melon:crop("Watermelon","🍉",90,150,360,11)};
-const ANIMALS={hen:{n:"Hen",pl:"Hens",e:"🐔",p:"egg",min:10,cost:120,lv:3,max:6},cow:{n:"Cow",pl:"Cows",e:"🐄",p:"milk",min:25,cost:400,lv:6,max:4},
-  sheep:{n:"Sheep",pl:"Sheep",e:"🐑",p:"wool",min:45,cost:800,lv:8,max:4},bee:{n:"Beehive",pl:"Beehives",e:"🐝",p:"honey",min:60,cost:1200,lv:10,max:3}};
-const ITEMS={...CROPS,egg:{n:"Egg",e:"🥚",price:20},milk:{n:"Milk",e:"🥛",price:55},wool:{n:"Wool",e:"🧶",price:95},honey:{n:"Honey",e:"🍯",price:140}};
-const FUPS={stall:{n:"Second counter",e:"🧺",d:"Room for 4 customers at once",cost:250,lv:3},fert:{n:"Compost heap",e:"🍂",d:"Crops grow 25% faster",cost:400,lv:4},
-  sign:{n:"Market sign",e:"🪧",d:"Customers come twice as often",cost:600,lv:5},spr:{n:"Sprinklers",e:"💦",d:"Fields water themselves",cost:900,lv:6},
-  stall2:{n:"Bigger stall",e:"⛺",d:"Room for 5 customers",cost:900,lv:8,req:"stall"}};
-const CUSTOMERS=[["👵","Mrs. Hazel"],["👨‍🌾","Old Tom"],["👧","Lily"],["🧑‍🍳","The baker"],["👴","Mr. Birch"],["👩","Rosa"],["🧒","Finn"],["👩‍🍳","The café"],["🧔","Big Bjørn"]];
-const farmFresh=()=>({coins:40,xp:0,lv:1,plots:Array(6).fill(null),seed:"carrot",inv:{},orders:[],nextOrder:Date.now(),animals:[],up:{}});
-let F=Object.assign(farmFresh(),lsGet(FKEY)||{}),fTab="fields",fTimer=null,fSig="";
+/* ---------- Farm (no rating: a 2D garden sandbox, time only passes while you play) ---------- */
+// Pick a tool and tap tiles to queue jobs; the farmer walks over and does them in order.
+// A day runs 06:00–18:00 (15 s per game hour). Then you set prices at the market, watch shoppers, and shop for tomorrow.
+const FKEY="eloArcade.farm",COLS=10,ROWS=13,HOUR=15,MOIST=6,FRESH=12,CO='<i class="coin"></i>';
+const EFONT='"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
+const crop=(n,e,h,price,seed,tier)=>({n,e,h,price,seed,tier}); // h: hours of watered growth
+const CROPS={carrot:crop("Carrot","🥕",4,6,2,0),lettuce:crop("Lettuce","🥬",6,9,3,0),potato:crop("Potato","🥔",8,12,4,0),
+  onion:crop("Onion","🧅",10,15,5,1),cucumber:crop("Cucumber","🥒",12,18,6,1),tomato:crop("Tomato","🍅",14,22,7,1),
+  pepper:crop("Pepper","🫑",16,27,9,2),strawberry:crop("Strawberry","🍓",18,31,10,2),corn:crop("Corn","🌽",20,34,11,2),
+  sunflower:crop("Sunflower","🌻",24,45,14,3),pumpkin:crop("Pumpkin","🎃",30,58,18,3)};
+const ITEMS={...CROPS,milk:{n:"Milk",e:"🥛",price:20}};
+const UPS={ // v: value at each level, c: cost of the next level
+  can:{n:"Watering can",e:"💧",v:[5,10,20],c:[120,400],d:v=>`Holds ${v} waterings`},
+  basket:{n:"Box stacker",e:"🧺",v:[6,12,24],c:[100,350],d:v=>`Carry ${v} crops at once`},
+  boots:{n:"Boots",e:"👢",v:[2.6,3.4,4.2],c:[150,450],d:(v,l)=>["Walking pace","Quicker steps","Running"][l]},
+  garden:{n:"Bigger garden",e:"🌿",v:[[5,5],[8,5],[8,7]],c:[200,600],d:v=>`${v[0]}×${v[1]} tiles`},
+  catalog:{n:"Seed catalog",e:"📖",v:[0,1,2,3],c:[150,450,1000],d:v=>["Carrot, lettuce, potato","Adds onion, cucumber, tomato","Adds pepper, strawberry, corn","Adds sunflower, pumpkin"][v]},
+  sign:{n:"Market sign",e:"🪧",v:[0,5,10],c:[300,800],d:v=>v?`${v} extra shoppers a day`:"Only passers-by"}};
+const SHOPPERS=["👵","👴","👩","👨","👧","🧒","🧑‍🍳","👩‍🦰","🧔","👨‍🦳","👱‍♀️","🧑"];
+const ACT={dig:.7,plant:.35,water:.45,harvest:.4,place:.5,pump:1.2,shed:1};
+const PUMP=[8,1],SHED=[0,0,3,2],GX=1,GY=3,PEN=[1,11,8,2],SPR_COST=250,PEN_COST=400,COW_COST=200;
+const fFresh=()=>({v:2,day:1,hour:6,coins:30,tool:"dig",seed:"carrot",water:5,carry:{},seeds:{carrot:10,lettuce:5},store:{},tiles:Array(COLS*ROWS).fill(null),
+  up:{can:0,basket:0,boots:0,garden:0,catalog:0,sign:0},spr:0,pen:false,cows:[],dem:{},price:{},phase:"day",sale:null,x:4.5,y:2.5,face:1});
+let F=(s=>s&&s.v===2?Object.assign(fFresh(),s):fFresh())(lsGet(FKEY)); // the earlier idle farm (v1) never shipped, so it starts over
+let fq=[],fJob=null,fRab=null,fFx=[],fCowP=[],fRaf=0,fLast=0,fSaveT=0,fTS=34,fCtx=null,fT=0;
 const fSave=()=>lsSet(FKEY,F);
-const fNeed=L=>Math.round(30*Math.pow(L,1.5));
-const fSlots=()=>3+(F.up.stall?1:0)+(F.up.stall2?1:0);
-const fPlotCost=()=>Math.round(25*Math.pow(1.4,F.plots.length-6)/5)*5;
-const fLeft=ms=>{const m=Math.ceil(ms/MIN);return ms<MIN?`${Math.ceil(ms/1000)} s`:m<60?`${m} min`:`${(m/60)|0} h ${m%60} min`};
-function fPlot(p,now){ // brings a plot up to date: empty, dry (needs water), grow or ready
-  if(!p)return{st:"empty",pct:0};const H=CROPS[p.c].min*MIN/2*(F.up.fert?.75:1);
-  if(F.up.spr){if(!p.w){p.w=1;p.t=now}if(p.w===1&&now-p.t>=H){p.w=2;p.t+=H}}
-  if(!p.w)return{st:"dry",pct:0};const el=now-p.t;
-  if(p.w===1)return el>=H?{st:"dry",pct:.5}:{st:"grow",pct:el/(2*H),left:2*H-el};
-  return el>=H?{st:"ready",pct:1}:{st:"grow",pct:.5+el/(2*H),left:H-el};
+const fTile=(x,y)=>x>=0&&y>=0&&x<COLS&&y<ROWS?F.tiles[y*COLS+x]:null;
+const fGW=()=>UPS.garden.v[F.up.garden];
+const fInGarden=(x,y)=>{const[w,h]=fGW();return x>=GX&&x<GX+w&&y>=GY&&y<GY+h};
+const fCap=k=>UPS[k].v[F.up[k]];
+const fCarryN=()=>Object.values(F.carry).reduce((a,b)=>a+b,0);
+const fRipe=t=>t&&t.c&&t.g>=CROPS[t.c].h;
+const fRotten=t=>fRipe(t)&&t.r>=FRESH;
+const fClock=()=>{const m=Math.floor(F.hour*60);return`${String((m/60)|0).padStart(2,"0")}:${String(m%60).padStart(2,"0")}`};
+function fDem(k){return F.dem[k]||(F.dem[k]={d:.8+Math.random()*.5,h:[],sold:0})}
+const fDemLvl=d=>d<.7?0:d<.9?1:d<1.1?2:d<1.35?3:4;
+const fDemName=d=>["Very low","Low","Normal","High","Very high"][fDemLvl(d)];
+function fMeta(){return F.phase==="day"?`Day ${F.day} · ${F.coins} coins · ${fClock()}`:`Day ${F.day} · the market is waiting`}
+
+/* What tapping a tile would do with the current tool */
+function fJobFor(x,y){
+  if(x===PUMP[0]&&y<=PUMP[1])return{k:"pump",x,y};
+  if(x<SHED[0]+SHED[2]&&y<SHED[1]+SHED[3])return{k:"shed",x,y};
+  if(!fInGarden(x,y)){toast("That's outside your garden");return null}
+  const t=fTile(x,y),k=F.tool;
+  if(k==="dig"){if(t&&t.c&&!fRotten(t)){toast("Something is growing there");return null}if(t&&!t.c&&!t.w&&!t.sp){toast("Already dug");return null}return{k:"dig",x,y}}
+  if(k==="seed"){if(!t||t.sp){toast("Dig the ground first");return null}if(t.c||t.w){toast(t.w?"Dig up the weeds first":"Already planted");return null}return{k:"plant",x,y,s:F.seed}}
+  if(k==="water"){if(!t||t.sp){toast("Only dug soil needs water");return null}return{k:"water",x,y}}
+  if(k==="harvest"){if(!fRipe(t)){toast(t&&t.c?"Not ripe yet":"Nothing to pick");return null}return{k:"harvest",x,y}}
+  if(k==="spr"){if(t&&(t.c||t.w||t.sp)){toast("Needs an empty tile");return null}return{k:"place",x,y}}
+  return null;
 }
-function fAni(a,now){const T=ANIMALS[a.k].min*MIN,el=now-a.t;return{ready:el>=T,pct:Math.min(1,el/T),left:T-el}}
-const fHas=o=>Object.entries(o.items).every(([k,q])=>(F.inv[k]||0)>=q);
-function fSummary(now){return{ready:F.plots.filter(p=>fPlot(p,now).st==="ready").length,dry:F.plots.filter(p=>fPlot(p,now).st==="dry").length,
-  ani:F.animals.filter(a=>fAni(a,now).ready).length,deliver:F.orders.filter(fHas).length,orders:F.orders.length}}
-function fMeta(){const s=fSummary(Date.now()),out=[];
-  if(s.ready)out.push(`${s.ready} ready to harvest`);if(s.dry)out.push(`${s.dry} need water`);if(s.ani)out.push(`${s.ani} animal${s.ani>1?"s":""} waiting`);
-  return out.length?out.join(" · "):"Grow, sell and build. No ratings, no rush."}
-function fNewOrder(){
-  const pool=Object.keys(ITEMS).filter(k=>CROPS[k]?CROPS[k].lv<=F.lv:F.animals.some(a=>ANIMALS[a.k].p===k)),items={};
-  for(const k of shuffle(pool).slice(0,1+rnd(F.lv<3?2:3)))items[k]=1+rnd(ITEMS[k].price<30?4:2);
-  const base=Object.entries(items).reduce((t,[k,q])=>t+ITEMS[k].price*q,0),[e,who]=CUSTOMERS[rnd(CUSTOMERS.length)];
-  return{e,who,items,pay:Math.round(base*1.5)+5,xp:Math.max(2,Math.round(base/5))};
+function fTap(px,py){
+  if(fRab&&fRab.st!=="flee"&&Math.hypot(px-fRab.x,py-fRab.y)<.8){fRab.st="flee";fRab.tx=fRab.x<COLS/2?-1:COLS+1;fAddFx(fRab.x,fRab.y,"Shoo!");return}
+  const x=px|0,y=py|0,i=fq.findIndex(j=>j.x===x&&j.y===y);
+  if(i>=0){fq.splice(i,1);return}
+  if(fq.length>=16){toast("That's a lot of jobs. Let the farmer catch up");return}
+  const j=fJobFor(x,y);if(j)fq.push(j);
 }
-function fUpdate(now){ // customers arrive while you're away; a broke farmer gets a loan
-  const gap=(F.up.sign?2:4)*MIN;
-  while(F.orders.length<fSlots()&&now>=F.nextOrder){F.orders.push(fNewOrder());F.nextOrder+=gap}
-  if(F.orders.length>=fSlots())F.nextOrder=Math.max(F.nextOrder,now+MIN);
-  if(F.coins<CROPS.carrot.cost&&F.plots.every(p=>!p)&&!Object.values(F.inv).some(n=>n>0)){F.coins+=10;toast("A neighbor lent you 10 coins for seeds",2200)}
+function fApply(j){const i=j.y*COLS+j.x,t=F.tiles[i];
+  if(j.k==="pump"){F.water=fCap("can");fAddFx(F.x,F.y-.6,"💧 full")}
+  else if(j.k==="shed"){const n=fCarryN();for(const k in F.carry)F.store[k]=(F.store[k]||0)+F.carry[k];F.carry={};if(n)fAddFx(F.x,F.y-.6,`+${n} stored`)}
+  else if(j.k==="dig"){if(!t)F.tiles[i]={c:null,g:0,m:0,r:0,w:0};else if(t.sp){F.tiles[i]=null;F.spr++}else if(t.w||fRotten(t)){t.w=0;t.c=null;t.g=t.r=0}}
+  else if(j.k==="plant"){if(!t||t.sp||t.c||t.w)return;if(!(F.seeds[j.s]>0)){toast(`Out of ${CROPS[j.s].n.toLowerCase()} seeds`);return}F.seeds[j.s]--;Object.assign(t,{c:j.s,g:0,r:0})}
+  else if(j.k==="water"){if(!t||t.sp)return;if(F.water<=0){toast("The can is empty. Tap the pump");fq=fq.filter(q=>q.k!=="water");return}F.water--;t.m=MOIST}
+  else if(j.k==="harvest"){if(!fRipe(t))return;if(fRotten(t)){t.c=null;t.g=t.r=0;fAddFx(j.x+.5,j.y,"Spoiled");return}
+    if(fCarryN()>=fCap("basket")){toast("Your boxes are full. Tap the shed");return}F.carry[t.c]=(F.carry[t.c]||0)+1;fAddFx(j.x+.5,j.y,`+1 ${CROPS[t.c].e}`);t.c=null;t.g=t.r=0}
+  else if(j.k==="place"){if(F.spr<=0||(t&&(t.c||t.w||t.sp)))return;F.tiles[i]={sp:1};F.spr--;if(!F.spr)F.tool="dig"}
+  fTools();
 }
-function fXP(n){F.xp+=n;
-  while(F.xp>=fNeed(F.lv)){F.xp-=fNeed(F.lv);F.lv++;
-    const unl=[...Object.values(CROPS),...Object.values(ANIMALS),...Object.values(FUPS)].filter(x=>x.lv===F.lv).map(x=>x.n);
-    toast(`Level ${F.lv}!${unl.length?` New: ${unl.join(", ")}`:""}`,2600)}}
-function fSow(i,now){const c=CROPS[F.seed];if(F.coins<c.cost)return false;F.coins-=c.cost;F.plots[i]={c:F.seed,w:0,t:0};fPlot(F.plots[i],now);return true}
-function fWater(p,now){if(!p.w)p.w=1;else p.w=2;p.t=now}
-function fHarvest(i){const c=F.plots[i].c;F.inv[c]=(F.inv[c]||0)+1;F.plots[i]=null;fXP(Math.max(1,Math.round(CROPS[c].price/8)))}
-function fTapPlot(i,now){const p=F.plots[i],st=fPlot(p,now);
-  if(st.st==="empty"){if(!fSow(i,now))toast(`Not enough coins for ${CROPS[F.seed].n.toLowerCase()} seeds`)}
-  else if(st.st==="dry")fWater(p,now);
-  else if(st.st==="grow")toast(`${CROPS[p.c].n}: ${fLeft(st.left)} to go`);
-  else fHarvest(i);
+function fStand(j){return j.k==="pump"?[PUMP[0]+.5,PUMP[1]+1.5]:j.k==="shed"?[1.5,2.5]:[j.x+.5,j.y+.5]}
+function fMove(dt){
+  if(!fJob){if(!fq.length)return;fJob={...fq.shift(),t:null}}
+  const[sx,sy]=fStand(fJob),dx=sx-F.x,dy=sy-F.y,d=Math.hypot(dx,dy);
+  if(d>.04){const s=Math.min(d,fCap("boots")*dt);F.x+=dx/d*s;F.y+=dy/d*s;if(Math.abs(dx)>.02)F.face=dx<0?-1:1;return}
+  if(fJob.t==null)fJob.t=ACT[fJob.k];fJob.t-=dt;if(fJob.t<=0){fApply(fJob);fJob=null}
 }
-function fBuyPlot(){const c=fPlotCost();if(F.plots.length>=16||F.coins<c)return;F.coins-=c;F.plots.push(null)}
-const fScale=pct=>`transform:scale(${(pct<.5?.45+pct*.7:.55+pct*.45).toFixed(2)})`;
-function fPlotHTML(p,i,now){const st=fPlot(p,now);
-  if(!p)return`<button class="plot" data-i="${i}" aria-label="Empty plot, tap to sow"></button>`;
-  const C=CROPS[p.c],label={dry:"needs water",grow:"growing",ready:"ready to harvest"}[st.st];
-  return`<button class="plot ${st.st}" data-i="${i}" aria-label="${C.n}, ${label}"><span class="crop" style="${st.st==="ready"?"":fScale(st.pct)}">${st.pct<.5?"🌱":C.e}</span>${st.st==="ready"?"":`<span class="pb"><i style="width:${st.pct*100}%"></i></span>`}</button>`;
+function fStep(dt){const hrs=dt/HOUR;F.hour+=hrs;
+  F.tiles.forEach(t=>{if(!t||t.sp)return;
+    if(t.c){if(fRipe(t))t.r+=hrs;else if(t.m>0)t.g+=Math.min(hrs,t.m)}
+    else if(!t.w&&Math.random()<hrs*.012)t.w=1;
+    if(t.m>0)t.m=Math.max(0,t.m-hrs)});
+  F.tiles.forEach((t,i)=>{if(!t||!t.sp)return;const x=i%COLS,y=(i/COLS)|0; // sprinklers keep the 8 tiles around them wet
+    for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){const n=fTile(x+dx,y+dy);if(n&&!n.sp)n.m=MOIST}});
+  F.cows.forEach((c,n)=>{c.t+=hrs;if(c.t>=4){c.t-=4;F.store.milk=(F.store.milk||0)+1;const p=fCowP[n];if(p)fAddFx(p.x,p.y-.5,"+1 🥛")}});
+  if(!fRab&&F.day>=3&&Math.random()<hrs*.08){const ts=F.tiles.map((t,i)=>t&&t.c&&!fRipe(t)?i:-1).filter(i=>i>=0);
+    if(ts.length){const i=ts[rnd(ts.length)],side=rnd(2);fRab={x:side?COLS+.5:-.5,y:GY+rnd(5)+.5,tx:i%COLS+.5,ty:((i/COLS)|0)+.5,i,st:"go",t:0}}}
 }
-function fFields(now){
-  const seeds=Object.entries(CROPS).map(([k,c])=>{const lock=c.lv>F.lv;
-    return`<button class="seed${F.seed===k?" on":""}" data-s="${k}" ${lock?"disabled":""} aria-label="${c.n}${lock?`, unlocks at level ${c.lv}`:`, ${c.cost} coins, ${c.min} min`}"><span>${lock?"🔒":c.e}</span><b>${lock?`Lv ${c.lv}`:c.cost+CO}</b></button>`}).join("");
-  const C=CROPS[F.seed];
-  return`<div class="seeds">${seeds}</div>
-   <p class="rule">${C.e} <b>${C.n}</b>: seed ${C.cost}${CO}, grows in ${fLeft(C.min*MIN*(F.up.fert?.75:1))}, sells for ${C.price}${CO}</p>
-   <div class="fields" id="fields">${F.plots.map((p,i)=>fPlotHTML(p,i,now)).join("")}${F.plots.length<16?`<button class="plot buy" data-buyplot="1"><span>＋ Plot<br>${fPlotCost()}${CO}</span></button>`:""}</div>
-   <div class="tools"><button class="tool" data-all="sow">🌱 Sow all</button>${F.up.spr?"":`<button class="tool" data-all="water">💧 Water all</button>`}<button class="tool" data-all="harvest">🧺 Harvest all</button></div>
-   <p class="rule">Pick a seed and tap an empty plot. Crops need water when sown and once more halfway${F.up.spr?" (your sprinklers handle that)":""}. Tap ripe crops to harvest.</p>`;
+function fRabbit(dt){const r=fRab;if(!r)return;
+  if(r.st==="eat"){r.t-=dt;const t=F.tiles[r.i];if(!t||!t.c){r.st="leave"}else if(r.t<=0){t.g=Math.max(0,t.g-CROPS[t.c].h*.4);fAddFx(r.x,r.y-.4,"Nibbled!");r.st="leave"}
+    if(r.st==="leave")r.tx=r.x<COLS/2?-1:COLS+1;return}
+  const dx=r.tx-r.x,dy=(r.st==="go"?r.ty:r.y)-r.y,d=Math.hypot(dx,dy),sp=r.st==="flee"?6:2;r.face=dx<0?-1:1;
+  if(d<.05){if(r.st==="go"){r.st="eat";r.t=4}else fRab=null;return}
+  const s=Math.min(d,sp*dt);r.x+=dx/d*s;r.y+=dy/d*s;
 }
-function fAnimals(now){
-  return Object.entries(ANIMALS).map(([k,a])=>{const P=ITEMS[a.p];
-    if(a.lv>F.lv)return`<div class="fcard lock"><span class="em">🔒</span><div><b>${a.pl}</b><small>Unlocks at level ${a.lv}</small></div></div>`;
-    const mine=F.animals.map((x,i)=>[x,i]).filter(([x])=>x.k===k);
-    return`<div class="fcard"><span class="em">${a.e}</span><div><b>${a.pl}</b> <small>${P.e} ${P.n.toLowerCase()} every ${a.min} min · ${mine.length}/${a.max}</small></div>
-     <button class="fbtn" data-buy="${k}" ${mine.length>=a.max||F.coins<a.cost?"disabled":""}>Buy ${a.cost}${CO}</button>
-     ${mine.length?`<div class="pen">${mine.map(([x,i])=>{const r=fAni(x,now);
-       return`<button class="ani${r.ready?" ready":""}" data-a="${i}" aria-label="${a.n}${r.ready?`, ${P.n.toLowerCase()} ready`:""}"><span>${a.e}</span>${r.ready?`<span class="prod">${P.e}</span>`:`<span class="pb"><i style="width:${r.pct*100}%"></i></span>`}</button>`}).join("")}</div>`:""}</div>`}).join("")
-   +`<p class="rule">Tap an animal when it has something for you.</p>`;
+function fCows(dt){while(fCowP.length<F.cows.length)fCowP.push({x:PEN[0]+1+Math.random()*(PEN[2]-2),y:PEN[1]+.6+Math.random()*(PEN[3]-1.2),tx:0,ty:0,w:0,face:1});
+  fCowP.forEach(p=>{p.w-=dt;if(p.w<=0){p.tx=PEN[0]+.7+Math.random()*(PEN[2]-1.4);p.ty=PEN[1]+.6+Math.random()*(PEN[3]-1.2);p.w=3+Math.random()*5}
+    const dx=p.tx-p.x,dy=p.ty-p.y,d=Math.hypot(dx,dy);if(d>.05){const s=Math.min(d,.5*dt);p.x+=dx/d*s;p.y+=dy/d*s;p.face=dx<0?-1:1}})}
+function fAddFx(x,y,txt){fFx.push({x,y,txt,t:1.3})}
+
+/* Drawing */
+function fE(e,x,y,size,flip){const c=fCtx;c.font=`${size}px ${EFONT}`;if(flip){c.save();c.translate(x,y);c.scale(-1,1);c.fillText(e,0,0);c.restore()}else c.fillText(e,x,y)}
+function fRect(x,y,w,h,col){fCtx.fillStyle=col;fCtx.fillRect(x*fTS,y*fTS,w*fTS,h*fTS)}
+function fDrawWorld(){const c=fCtx,S=fTS,[gw,gh]=fGW();c.textAlign="center";c.textBaseline="middle";
+  for(let y=0;y<ROWS;y++)for(let x=0;x<COLS;x++){const inG=fInGarden(x,y);
+    fRect(x,y,1,1,y===2?((x&1)?"#D9C089":"#D3B97F"):inG?(((x+y)&1)?"#8CC862":"#84C05B"):(((x+y)&1)?"#76AF4D":"#70A848"))}
+  // shed, pump, trees and flowers
+  fRect(0,.55,3,1.45,"#B5543A");c.fillStyle="#7A2E1F";c.beginPath();c.moveTo(-.1*S,.7*S);c.lineTo(1.5*S,.02*S);c.lineTo(3.1*S,.7*S);c.fill();
+  fRect(1.15,1.05,.7,.95,"#5A341E");fRect(.25,.95,.55,.45,"#F3E3B5");fRect(2.2,.95,.55,.45,"#F3E3B5");
+  fRect(8.3,.35,.4,1.5,"#6F7888");fRect(8.05,1.6,.9,.3,"#56606F");fRect(8.6,.55,.55,.18,"#6F7888");
+  c.strokeStyle="#56606F";c.lineWidth=S*.09;c.beginPath();c.moveTo(8.3*S,.55*S);c.lineTo(7.95*S,.2*S);c.stroke();
+  if(fJob&&fJob.k==="pump"&&fJob.t!=null)fE("💧",9.05*S,(1.05+(fT*2%1)*.5)*S,S*.35);
+  [[4.2,.5],[5.6,.35],[7,.6],[9.5,4.5],[9.4,8],[0,6.2],[9.5,11.5]].forEach(([x,y])=>fE("🌳",x*S,y*S,S*.95));
+  [[3.6,1.4],[6.3,1.5],[0.4,9.6],[9.4,10]].forEach(([x,y])=>fE("🌼",x*S,y*S,S*.45));
+  // pen and cows
+  if(F.pen){fRect(PEN[0],PEN[1],PEN[2],PEN[3],"#D9BE6A");c.strokeStyle="#8A5A2B";c.lineWidth=S*.08;c.strokeRect(PEN[0]*S,PEN[1]*S,PEN[2]*S,PEN[3]*S);
+    fCowP.forEach(p=>fE("🐄",p.x*S,p.y*S,S*.85,p.face>0))}
+  else{c.fillStyle="rgba(0,0,0,.18)";c.font=`700 ${S*.32}px system-ui,sans-serif`;c.fillText("Cow pen for sale",(PEN[0]+PEN[2]/2)*S,(PEN[1]+1)*S)}
+  // garden tiles
+  for(let y=GY;y<GY+gh;y++)for(let x=GX;x<GX+gw;x++){const t=fTile(x,y),cx=(x+.5)*S,cy=(y+.5)*S;if(!t)continue;
+    if(t.sp){fRect(x,y,1,1,"#84C05B");c.fillStyle="#7D8696";c.beginPath();c.arc(cx,cy,S*.16,0,7);c.fill();
+      c.strokeStyle="rgba(80,170,255,.6)";c.lineWidth=2;const r=S*(.25+(fT%1)*.5);c.beginPath();c.arc(cx,cy,r,0,7);c.stroke();continue}
+    fRect(x+.04,y+.04,.92,.92,t.m>0?"#6B4526":"#A0703F");c.fillStyle=t.m>0?"#57381E":"#8A5E33";
+    for(let k=1;k<4;k++)c.fillRect((x+.12)*S,(y+k*.25)*S-1,.76*S,2);
+    if(t.w){fE("🌿",cx,cy,S*.7);continue}
+    if(!t.c)continue;const C=CROPS[t.c],f=Math.min(1,t.g/C.h);
+    if(fRotten(t))fE("🥀",cx,cy,S*.7);
+    else if(f>=1){c.strokeStyle="rgba(255,214,64,.95)";c.lineWidth=2.5;c.strokeRect((x+.08)*S,(y+.08)*S,.84*S,.84*S);fE(C.e,cx,cy+Math.sin(fT*3+x+y)*1.5,S*.78)}
+    else if(f<.15){c.fillStyle="#E8D7A8";[[-.15,.1],[.12,-.08],[.02,.16]].forEach(([a,b])=>{c.beginPath();c.arc(cx+a*S,cy+b*S,S*.05,0,7);c.fill()})}
+    else if(f<.45)fE("🌱",cx,cy,S*(.3+f*.6));
+    else fE(C.e,cx,cy,S*(.3+.4*f));
+    if(f<1&&t.m<=0)fE("💧",cx+S*.3,cy-S*.3,S*.28);
+  }
+  // fence around the garden
+  c.strokeStyle="#8A5A2B";c.lineWidth=S*.07;c.strokeRect((GX-.04)*S,(GY-.04)*S,(gw+.08)*S,(gh+.08)*S);
+  // queued jobs
+  [fJob,...fq].forEach((j,n)=>{if(!j)return;const[sx,sy]=j.k==="pump"||j.k==="shed"?fStand(j):[j.x+.82,j.y+.2];
+    c.fillStyle=n?"rgba(255,255,255,.92)":"#FFD24A";c.beginPath();c.arc(sx*S,sy*S,S*.17,0,7);c.fill();
+    c.fillStyle="#191C38";c.font=`700 ${S*.24}px ui-monospace,monospace`;c.fillText(n+1,sx*S,sy*S+1)});
+  // rabbit, farmer, floating text
+  if(fRab)fE("🐇",fRab.x*S,fRab.y*S+(fRab.st==="eat"?0:Math.abs(Math.sin(fT*12))*-3),S*.7,fRab.face>0);
+  const moving=fJob&&fJob.t==null,acting=fJob&&fJob.t!=null;
+  fE("🧑‍🌾",F.x*S,(F.y-.25)*S-(moving?Math.abs(Math.sin(fT*10))*3:0),S*1.05,F.face>0);
+  if(acting){const tool={dig:"⛏️",plant:"🌱",water:"💧",harvest:"🧺",place:"💦",pump:"",shed:"📦"}[fJob.k];if(tool)fE(tool,(F.x+.45*F.face)*S,(F.y-.1+Math.sin(fT*14)*.06)*S,S*.42)}
+  const n=fCarryN();if(n){c.fillStyle="rgba(255,255,255,.92)";c.beginPath();c.arc((F.x-.42)*S,(F.y-.75)*S,S*.2,0,7);c.fill();
+    c.fillStyle="#191C38";c.font=`700 ${S*.24}px ui-monospace,monospace`;c.fillText(n,(F.x-.42)*S,(F.y-.75)*S+1)}
+  fFx.forEach(f=>{c.globalAlpha=Math.min(1,f.t);c.fillStyle="#fff";c.strokeStyle="rgba(0,0,0,.55)";c.lineWidth=3;c.font=`800 ${S*.32}px system-ui,sans-serif`;
+    const y=(f.y-(1.3-f.t)*.6)*S;c.strokeText(f.txt,f.x*S,y);c.fillText(f.txt,f.x*S,y);c.globalAlpha=1});
+  if(F.hour>15){c.fillStyle=`rgba(255,120,40,${Math.min(.25,(F.hour-15)/3*.25)})`;c.fillRect(0,0,COLS*S,ROWS*S)}
 }
-function fMarket(now){
-  const orders=F.orders.map((o,i)=>`<div class="fcard"><span class="em">${o.e}</span><div><b>${o.who}</b>
-     <div class="need">${Object.entries(o.items).map(([k,q])=>`<span class="${(F.inv[k]||0)>=q?"":"miss"}">${ITEMS[k].e} ${Math.min(F.inv[k]||0,q)}/${q}</span>`).join("")}</div>
-     <small>Pays ${o.pay}${CO} · +${o.xp} XP</small></div>
-     <div class="fcol"><button class="fbtn" data-d="${i}" ${fHas(o)?"":"disabled"}>Deliver</button><button class="fbtn ghost" data-x="${i}">Send away</button></div></div>`).join("");
-  const inv=Object.entries(F.inv).filter(([,n])=>n>0);
-  return`<h3 class="fh">Customers</h3>${orders||`<p class="rule">No one at the stall yet.</p>`}
-   <p class="rule">${F.orders.length>=fSlots()?"Your stall is full. Serve someone to make room.":`Next customer in <b id="fNext">${fLeft(F.nextOrder-now)}</b>`}</p>
-   <h3 class="fh">Barn</h3>${inv.length?inv.map(([k,n])=>`<div class="fcard"><span class="em">${ITEMS[k].e}</span><div><b>${ITEMS[k].n} ×${n}</b><small>${ITEMS[k].price}${CO} each at the market</small></div>
-     <div class="fcol"><button class="fbtn ghost" data-s1="${k}">Sell 1</button>${n>1?`<button class="fbtn ghost" data-sa="${k}">Sell all</button>`:""}</div></div>`).join("")
-     :`<p class="rule">The barn is empty. Harvest something!</p>`}
-   <p class="rule">Customers pay half again what the market does, and give XP.</p>`;
+
+/* Screens: the day in the garden, the market, the stall, the shop */
+function fScreen(){fStopLoop();clearInterval(fStallT);const p=$("#fpanel");if(!p)return;
+  $("#fbar").innerHTML=`<span class="fday">Day ${F.day}</span><span class="fclock" id="fClock">${F.phase==="day"?fClock():"Evening"}</span><span class="fcoins" id="fCoins">${F.coins}${CO}</span>`;
+  ({day:fDayView,market:fMarketView,stall:fStallView,shop:fShopView})[F.phase](p);
 }
-function fShop(){
-  return`<div class="fcard"><span class="em">🟫</span><div><b>Extra plot</b><small>${F.plots.length}/16 plots</small></div>${F.plots.length>=16?`<span class="chip">Full</span>`:`<button class="fbtn" data-buyplot="1" ${F.coins<fPlotCost()?"disabled":""}>${fPlotCost()}${CO}</button>`}</div>`
-   +Object.entries(FUPS).map(([k,u])=>{const lock=u.lv>F.lv||(u.req&&!F.up[u.req]);
-    return`<div class="fcard${lock&&!F.up[k]?" lock":""}"><span class="em">${u.e}</span><div><b>${u.n}</b><small>${u.d}${lock?` · ${u.lv>F.lv?`level ${u.lv}`:`after ${FUPS[u.req].n}`}`:""}</small></div>
-     ${F.up[k]?`<span class="chip">Owned</span>`:`<button class="fbtn" data-u="${k}" ${lock||F.coins<u.cost?"disabled":""}>${u.cost}${CO}</button>`}</div>`}).join("");
+function fDayView(p){
+  fTS=Math.floor(Math.min(app.clientWidth||360,460)/COLS);
+  p.innerHTML=`<canvas class="fworld" id="fcv" width="${COLS*fTS*devicePixelRatio}" height="${ROWS*fTS*devicePixelRatio}" style="aspect-ratio:${COLS}/${ROWS}" aria-label="Your garden"></canvas>
+   <div class="ftools" id="ftools"></div><p class="rule" id="fhint"></p>
+   <div class="btns"><button class="btn" id="fEnd">End the day</button></div>`;
+  const cv=$("#fcv");fCtx=cv.getContext("2d");fCtx.scale(devicePixelRatio,devicePixelRatio);
+  cv.onpointerdown=e=>{const r=cv.getBoundingClientRect();fTap((e.clientX-r.left)/r.width*COLS,(e.clientY-r.top)/r.height*ROWS)};
+  $("#ftools").onclick=e=>{const b=e.target.closest("[data-tool]");if(!b)return;const k=b.dataset.tool;if(k==="seed"&&F.tool==="seed")fSeedPicker();F.tool=k;fTools()};
+  const end=$("#fEnd");end.onclick=()=>{if(end.classList.contains("arm")){fEndDay();return}end.classList.add("arm");end.textContent="Tap again to go to market";
+    setTimeout(()=>{end.classList.remove("arm");end.textContent="End the day"},3000)};
+  fTools();fLast=0;fRaf=requestAnimationFrame(fLoop);
 }
-const fSigOf=now=>F.plots.map(p=>p?fPlot(p,now).st+p.w:"-").join()+"|"+F.animals.map(a=>fAni(a,now).ready?1:0).join("")+"|"+F.orders.length+"|"+F.plots.length;
-function fDraw(){const now=Date.now(),s=fSummary(now);
-  $("#fbar").innerHTML=`<span class="fcoins">${F.coins}${CO}</span><span class="flv">Level ${F.lv}</span><span class="fxp" title="${F.xp}/${fNeed(F.lv)} XP"><i style="width:${F.xp/fNeed(F.lv)*100}%"></i></span>`;
-  $("#ftabs").innerHTML=[["fields","Fields",s.ready+s.dry],["animals","Animals",s.ani],["market","Market",s.deliver],["shop","Shop",0]]
-    .map(([k,n,c])=>`<button class="ftab${fTab===k?" on":""}" data-t="${k}" role="tab" aria-selected="${fTab===k}">${n}${c?`<b>${c}</b>`:""}</button>`).join("");
-  $("#fpanel").innerHTML={fields:fFields,animals:fAnimals,market:fMarket,shop:fShop}[fTab](now);
-  fSig=fSigOf(now);
+function fTools(){const tb=$("#ftools");if(!tb)return;const s=CROPS[F.seed];
+  const tools=[["dig","⛏️","Dig"],["seed",s.e,`×${F.seeds[F.seed]||0}`],["water","💧",`${F.water}/${fCap("can")}`],["harvest","🧺",`${fCarryN()}/${fCap("basket")}`]];
+  if(F.spr>0||F.tool==="spr")tools.push(["spr","💦",`×${F.spr}`]);
+  tb.innerHTML=tools.map(([k,e,l])=>`<button class="ftool${F.tool===k?" on":""}" data-tool="${k}" aria-pressed="${F.tool===k}"><span>${e}</span>${l}</button>`).join("");
+  $("#fhint").textContent={dig:"Tap grass in the garden to dig a bed. Dig again to clear weeds, spoiled crops or a sprinkler.",
+    seed:`Tap dug soil to sow ${s.n.toLowerCase()}. Tap the seed button again to switch seeds.`,water:"Tap soil to water it. Dry beds stop growing. Tap the pump to refill.",
+    harvest:"Tap ripe crops to pick them, then tap the shed to store them for the market.",spr:"Tap an empty tile to place a sprinkler. It waters the 8 tiles around it."}[F.tool]+" Tap a numbered tile to cancel.";
+  const co=$("#fCoins");if(co)co.innerHTML=F.coins+CO;
 }
-function fTick(){if(cur!=="farm"){fStop();return}const now=Date.now();fUpdate(now);
-  if(fSigOf(now)!==fSig){fSave();fDraw();return}
-  document.querySelectorAll("#fields .plot[data-i]").forEach(b=>{const p=F.plots[+b.dataset.i],st=fPlot(p,now);if(st.st!=="grow")return;
-    const c=b.querySelector(".crop"),bar=b.querySelector(".pb i");if(c)c.style.transform=fScale(st.pct).slice(10);if(bar)bar.style.width=st.pct*100+"%"});
-  document.querySelectorAll(".ani[data-a] .pb i").forEach(bar=>{bar.style.width=fAni(F.animals[+bar.closest(".ani").dataset.a],now).pct*100+"%"});
-  const nx=$("#fNext");if(nx)nx.textContent=fLeft(F.nextOrder-now);
+function fSeedPicker(){const own=Object.keys(CROPS).filter(k=>F.seeds[k]>0||k===F.seed);
+  const sc=document.createElement("div");sc.className="scrim";
+  sc.innerHTML=`<div class="sheet" role="dialog" aria-label="Seeds"><h3>Seeds</h3><div class="seedlist">${own.map(k=>`<button data-k="${k}" class="${k===F.seed?"on":""}"><span>${CROPS[k].e}</span>${CROPS[k].n}<br>×${F.seeds[k]||0}</button>`).join("")}</div>
+   <p>Buy more seeds at the shop after the market.</p><div class="btns"><button class="btn" id="fsx">Close</button></div></div>`;
+  sc.onclick=e=>{const b=e.target.closest("[data-k]");if(b){F.seed=b.dataset.k;fTools()}if(b||e.target===sc||e.target.id==="fsx")sc.remove()};
+  document.body.appendChild(sc);
 }
-function fStop(){clearInterval(fTimer);fTimer=null}
-function fAct(b,now){const d=b.dataset;
-  if(d.i!=null)fTapPlot(+d.i,now);
-  else if(d.s)F.seed=d.s;
-  else if(d.buyplot)fBuyPlot();
-  else if(d.all==="sow"){let n=0;F.plots.forEach((p,i)=>{if(!p&&fSow(i,now))n++});if(!n)toast(F.plots.some(p=>!p)?"Not enough coins":"No empty plots")}
-  else if(d.all==="water"){F.plots.forEach(p=>{if(p&&fPlot(p,now).st==="dry")fWater(p,now)})}
-  else if(d.all==="harvest"){let n=0;F.plots.forEach((p,i)=>{if(fPlot(p,now).st==="ready"){fHarvest(i);n++}});if(!n)toast("Nothing is ripe yet")}
-  else if(d.buy){const a=ANIMALS[d.buy];if(F.coins>=a.cost){F.coins-=a.cost;F.animals.push({k:d.buy,t:now})}}
-  else if(d.a!=null){const x=F.animals[+d.a],r=fAni(x,now),P=ITEMS[ANIMALS[x.k].p];
-    if(r.ready){F.inv[ANIMALS[x.k].p]=(F.inv[ANIMALS[x.k].p]||0)+1;x.t=now;fXP(Math.max(1,Math.round(P.price/8)))}else toast(`${P.n}: ${fLeft(r.left)} to go`)}
-  else if(d.d!=null){const o=F.orders[+d.d];if(!fHas(o))return;for(const[k,q]of Object.entries(o.items))F.inv[k]-=q;
-    F.coins+=o.pay;F.orders.splice(+d.d,1);fXP(o.xp);toast(`${o.who} paid ${o.pay} coins`,1200)}
-  else if(d.x!=null){F.orders.splice(+d.x,1);F.nextOrder=Math.min(F.nextOrder,now+MIN)}
-  else if(d.s1||d.sa){const k=d.s1||d.sa,n=d.s1?1:F.inv[k];F.inv[k]-=n;F.coins+=ITEMS[k].price*n}
-  else if(d.u){const u=FUPS[d.u];if(F.coins>=u.cost){F.coins-=u.cost;F.up[d.u]=true;toast(`${u.n}: ${u.d.toLowerCase()}`,2000)}}
+function fLoop(t){if(cur!=="farm"||F.phase!=="day"||!$("#fcv")){fRaf=0;return}
+  const dt=fLast?Math.min(.1,(t-fLast)/1000):0;fLast=t;fT+=dt;
+  fStep(dt);fMove(dt);fRabbit(dt);fCows(dt);fFx.forEach(f=>f.t-=dt);fFx=fFx.filter(f=>f.t>0);fDrawWorld();
+  const ck=$("#fClock");if(ck)ck.textContent=fClock();
+  fSaveT+=dt;if(fSaveT>5){fSaveT=0;fSave()}
+  if(F.hour>=18){fEndDay();return}
+  fRaf=requestAnimationFrame(fLoop);
 }
+function fStopLoop(){if(fRaf)cancelAnimationFrame(fRaf);fRaf=0}
+function fEndDay(){F.hour=18;for(const k in F.carry)F.store[k]=(F.store[k]||0)+F.carry[k];F.carry={};fq=[];fJob=null;fRab=null;
+  for(const k in F.store)if(F.store[k]>0)F.price[k]=Math.max(1,Math.round(ITEMS[k].price*fDem(k).d));
+  F.phase="market";fSave();fScreen()}
+function fSpark(h){if(h.length<2)return"";const w=70,ht=18,pts=h.map((v,i)=>`${(i/(h.length-1)*w).toFixed(1)},${(ht-2-(v-.45)/1.45*(ht-4)).toFixed(1)}`).join(" ");
+  return`<svg class="fspark" width="${w}" height="${ht}" aria-hidden="true"><polyline points="${pts}" fill="none" stroke="var(--farm)" stroke-width="2" stroke-linejoin="round"/></svg>`}
+function fMarketView(p){const ks=Object.keys(F.store).filter(k=>F.store[k]>0);
+  p.innerHTML=`<h3 class="fh">Market</h3><p class="rule">Set a price for what's in your shed. When demand is high, shoppers pay more. Price too high and they walk on by.</p>
+   ${ks.length?ks.map(k=>{const I=ITEMS[k],D=fDem(k);return`<div class="fcard"><span class="em">${I.e}</span><div><b>${I.n} ×${F.store[k]}</b>
+     <small>Demand <span class="dem d${fDemLvl(D.d)}">${fDemName(D.d)}</span> · usually ${I.price}${CO}</small>${fSpark([...D.h,D.d])}</div>
+     <div class="step"><button data-k="${k}" data-dp="-1" aria-label="Lower price">−</button><b>${F.price[k]}${CO}</b><button data-k="${k}" data-dp="1" aria-label="Raise price">＋</button></div></div>`}).join("")
+    :`<p class="rule">The shed is empty, so there's nothing to sell today.</p>`}
+   <div class="btns"><button class="btn" id="fSkip">Skip market</button>${ks.length?`<button class="btn pri" id="fOpen">Open the stall</button>`:""}</div>`;
+  p.onclick=e=>{const b=e.target.closest("[data-dp]");if(!b)return;const k=b.dataset.k;F.price[k]=clamp(F.price[k]+ +b.dataset.dp,1,999);fSave();fMarketView(p)};
+  $("#fSkip").onclick=()=>{F.phase="shop";F.sale=null;fSave();fScreen()};
+  if(ks.length)$("#fOpen").onclick=fSell;
+}
+// Shoppers each look at one or two things. They buy if your price is under what today's demand makes them willing to pay.
+function fSell(){const n=8+UPS.sign.v[F.up.sign]+Math.min(8,(F.day/3)|0),ev=[];let total=0;
+  for(let s=0;s<n;s++){const e=SHOPPERS[rnd(SHOPPERS.length)],ks=Object.keys(F.store).filter(k=>F.store[k]>0);
+    if(!ks.length){ev.push({e,no:"Sold out"});continue}
+    const buy=[],miss=[];for(const k of shuffle(ks).slice(0,1+rnd(2))){const D=fDem(k),will=ITEMS[k].price*D.d*(.75+Math.random()*.6),pr=F.price[k];
+      if(pr<=will){const q=Math.min(F.store[k],1+(pr<=will*.8?1:0)+(rnd(3)?0:1));F.store[k]-=q;D.sold+=q;total+=q*pr;buy.push([k,q,q*pr])}else miss.push(k)}
+    ev.push(buy.length?{e,buy}:{e,no:`${ITEMS[miss[0]].e} too pricey`})}
+  F.coins+=total;F.sale={ev,total};F.phase="stall";fSave();fScreen();
+}
+function fStallView(p){const S=F.sale;let i=0,run=0;
+  p.innerHTML=`<h3 class="fh">At the stall</h3><div class="lane" id="lane"><div class="stallbox"><div class="awn"></div><div class="ctr">${[...new Set([...Object.keys(F.store).filter(k=>F.store[k]>0),...S.ev.flatMap(e=>(e.buy||[]).map(b=>b[0]))])].slice(0,6).map(k=>ITEMS[k].e).join("")||"🧺"}</div></div></div>
+   <div class="ftotal" id="ftot">0${CO}</div><div class="btns"><button class="btn" id="fFast">Skip ahead</button></div>`;
+  const lane=$("#lane"),tot=$("#ftot");
+  const done=()=>{clearInterval(fStallT);F.phase="shop";fSave();fScreen()};
+  $("#fFast").onclick=done;clearInterval(fStallT);
+  fStallT=setInterval(()=>{if(cur!=="farm"||!document.body.contains(lane)){clearInterval(fStallT);return}
+    if(i>=S.ev.length){done();return}const ev=S.ev[i++],d=document.createElement("span");d.className="shopper";
+    d.innerHTML=`${ev.e}<span class="bub ${ev.buy?"yes":"no"}">${ev.buy?ev.buy.map(([k,q,c])=>`${ITEMS[k].e}×${q} +${c}`).join(" "):ev.no}</span>`;
+    lane.appendChild(d);setTimeout(()=>d.remove(),2900);if(ev.buy){run+=ev.buy.reduce((a,b)=>a+b[2],0);tot.innerHTML=run+CO}},750);
+}
+let fStallT=0;
+function fShopView(p){const S=F.sale,tier=UPS.catalog.v[F.up.catalog];
+  const sold=S&&S.ev.flatMap(e=>e.buy||[]).reduce((o,[k,q])=>(o[k]=(o[k]||0)+q,o),{});
+  p.innerHTML=`${S?`<div class="fcard"><span class="em">💰</span><div><b>Today's market: ${S.total} coins</b><small>${Object.entries(sold).map(([k,q])=>`${ITEMS[k].e}×${q}`).join(" ")||"Nothing sold. Try lower prices."}</small></div></div>`:""}
+   <h3 class="fh">Seeds</h3>${Object.entries(CROPS).filter(([,c])=>c.tier<=tier).map(([k,c])=>`<div class="fcard"><span class="em">${c.e}</span>
+     <div><b>${c.n}</b> <small>Grows in ${c.h} h · sells around ${c.price}${CO} · you have ${F.seeds[k]||0}</small></div>
+     <div class="fcol"><button class="fbtn" data-seed="${k}" data-q="1" ${F.coins<c.seed?"disabled":""}>+1 · ${c.seed}${CO}</button><button class="fbtn ghost" data-seed="${k}" data-q="5" ${F.coins<c.seed*5?"disabled":""}>+5 · ${c.seed*5}${CO}</button></div></div>`).join("")}
+   <h3 class="fh">Upgrades</h3>${Object.entries(UPS).map(([k,u])=>{const l=F.up[k],max=l>=u.c.length;
+     return`<div class="fcard"><span class="em">${u.e}</span><div><b>${u.n}</b><small>${u.d(u.v[l],l)}${max?"":` → ${u.d(u.v[l+1],l+1)}`}</small></div>
+     ${max?`<span class="chip">Max</span>`:`<button class="fbtn" data-up="${k}" ${F.coins<u.c[l]?"disabled":""}>${u.c[l]}${CO}</button>`}</div>`}).join("")}
+   <div class="fcard"><span class="em">💦</span><div><b>Sprinkler</b><small>Waters the 8 tiles around it all day · you have ${F.spr}</small></div><button class="fbtn" data-spr="1" ${F.coins<SPR_COST?"disabled":""}>${SPR_COST}${CO}</button></div>
+   ${F.pen?`<div class="fcard"><span class="em">🐄</span><div><b>Cows</b><small>A bottle of milk every 4 hours, straight to the shed · ${F.cows.length}/4</small></div><button class="fbtn" data-cow="1" ${F.coins<COW_COST||F.cows.length>=4?"disabled":""}>${COW_COST}${CO}</button></div>`
+     :`<div class="fcard"><span class="em">🐄</span><div><b>Cow pen</b><small>Room for 4 cows below the garden</small></div><button class="fbtn" data-pen="1" ${F.coins<PEN_COST?"disabled":""}>${PEN_COST}${CO}</button></div>`}
+   <button class="btn pri fbig" id="fSleep">Sleep · start day ${F.day+1}</button>`;
+  p.onclick=e=>{const b=e.target.closest("button[data-seed],button[data-up],button[data-spr],button[data-cow],button[data-pen]");if(!b||b.disabled)return;const d=b.dataset;
+    if(d.seed){const c=CROPS[d.seed],q=+d.q;if(F.coins<c.seed*q)return;F.coins-=c.seed*q;F.seeds[d.seed]=(F.seeds[d.seed]||0)+q}
+    else if(d.up){const u=UPS[d.up],c=u.c[F.up[d.up]];if(F.coins<c)return;F.coins-=c;F.up[d.up]++;if(d.up==="can")F.water=fCap("can")}
+    else if(d.spr){if(F.coins<SPR_COST)return;F.coins-=SPR_COST;F.spr++}
+    else if(d.cow){if(F.coins<COW_COST||F.cows.length>=4)return;F.coins-=COW_COST;F.cows.push({t:0})}
+    else if(d.pen){if(F.coins<PEN_COST)return;F.coins-=PEN_COST;F.pen=true}
+    fSave();const y=window.scrollY;fScreen();window.scrollTo(0,y)};
+  $("#fSleep").onclick=fNewDay;
+}
+function fNewDay(){F.day++;F.hour=6;F.phase="day";F.sale=null;F.x=1.5;F.y=2.5;F.tool=F.tool==="spr"&&!F.spr?"dig":F.tool;
+  for(const k in ITEMS){const D=fDem(k);D.h.push(D.d);if(D.h.length>9)D.h.shift(); // demand drifts back toward normal, and dips where you flooded the market
+    D.d=clamp(D.d+(Math.random()-.5)*.35+(1-D.d)*.2-D.sold*.012,.45,1.9);D.sold=0}
+  F.tiles.forEach(t=>{if(t&&!t.sp&&!t.c&&!t.w&&Math.random()<.08)t.w=1});
+  fSave();fScreen();scrollTo(0,0);
+}
+function fStop(){fStopLoop();clearInterval(fStallT);if(cur==="farm")fSave()}
 function openFarm(){
   sdkPause();hideTip();cur="farm";document.documentElement.style.setProperty("--acc","var(--farm)");
-  const now=Date.now();fUpdate(now);fSave();const s=fSummary(now);
   app.innerHTML=`<div class="top"><button class="back" id="back">‹ Arcade</button><h2>Farm</h2><span></span></div>
-   <div class="fbar" id="fbar"></div><div class="ftabs" id="ftabs" role="tablist"></div><div class="fpanel" id="fpanel"></div>`;
-  $("#back").onclick=showHome;
-  $("#ftabs").onclick=e=>{const b=e.target.closest("[data-t]");if(b){fTab=b.dataset.t;fDraw()}};
-  $("#fpanel").onclick=e=>{const b=e.target.closest("button");if(!b||b.disabled)return;fAct(b,Date.now());fSave();fDraw()};
-  fDraw();fStop();fTimer=setInterval(fTick,1000);
-  const back=[s.ready&&`${s.ready} crop${s.ready>1?"s":""} ripe`,s.ani&&`${s.ani} animal${s.ani>1?"s":""} waiting`,s.deliver&&`${s.deliver} order${s.deliver>1?"s":""} you can fill`].filter(Boolean);
-  if(back.length)toast(back.join(" · "),2200);
+   <div class="fbar" id="fbar"></div><div class="fpanel" id="fpanel"></div>`;
+  $("#back").onclick=()=>{fStop();showHome()};
+  fScreen();
 }
+document.addEventListener("visibilitychange",()=>{if(document.hidden&&cur==="farm")fSave();else if(cur==="farm"&&F.phase==="day"&&!fRaf&&$("#fcv")){fLast=0;fRaf=requestAnimationFrame(fLoop)}});
 
 const MAKERS={sudoku:makeSudoku,numbers:makeNumbers,wordle:makeWordle,mastermind:makeMastermind};
 const RENDER={sudoku:renderSudoku,numbers:renderNumbers,wordle:renderWordle,mastermind:renderMastermind};
@@ -1213,7 +1327,7 @@ document.addEventListener("keydown",e=>{
     else if(e.key.startsWith("Arrow")){const i=s.sel<0?40:s.sel,r=(i/9)|0,c=i%9;
       const m={ArrowUp:[-1,0],ArrowDown:[1,0],ArrowLeft:[0,-1],ArrowRight:[0,1]}[e.key];s.sel=clamp(r+m[0],0,8)*9+clamp(c+m[1],0,8);drawSudoku();e.preventDefault()}}
 });
-window.__arcade={mmTip,mmCands,mmFeedback,makeMastermind,sdkScore,sdkSecs,applyElo,sudokuTip,numbersTip,wordleTip,nmPairs,nmCan,makeSudoku,makeNumbers,makeWordle,sessions,DICT,ANSWERS,fits,bestGuess,get store(){return store},get farm(){return F},fUpdate,fPlot};
+window.__arcade={mmTip,mmCands,mmFeedback,makeMastermind,sdkScore,sdkSecs,applyElo,sudokuTip,numbersTip,wordleTip,nmPairs,nmCan,makeSudoku,makeNumbers,makeWordle,sessions,DICT,ANSWERS,fits,bestGuess,get store(){return store},get farm(){return F},fTap,fEndDay,fNewDay};
 showHome();
 Acct.start();
 })();
