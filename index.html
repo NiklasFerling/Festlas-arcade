@@ -21,7 +21,7 @@
 :root{
   --bg:#E8EBF4; --surface:#FFFFFF; --ink:#191C38; --muted:#5C6287; --line:#CDD2E6; --soft:#DFE3F2;
   --sdk:#4A4ED6; --num:#D9492F; --wrd:#16806F; --mm:#A23FB8;
-  --qn:#B7791F; --ms:#3B8A3E; --lad:#0B7FB0; --ken:#C2417A; --qink:#23263F;
+  --qn:#B7791F; --ms:#3B8A3E; --lad:#0B7FB0; --ken:#C2417A; --bb:#E8590C; --qink:#23263F;
   --ok:#2E9A58; --warn:#D2960E; --bad:#D23838; --absent:#8B90AE; --tip:#F4B400;
   --key:#DFE3F2; --keyInk:#191C38; --keyUsed:#8B90AE; --keyUsedInk:#FFFFFF;
   --f-display:"Bungee","Arial Black",Impact,system-ui,sans-serif;
@@ -32,13 +32,13 @@
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#11132A; --surface:#1B1E3C; --ink:#ECEEFF; --muted:#9CA2CC; --line:#30355F; --soft:#262A4D;
   --sdk:#8C90FF; --num:#FF7A5F; --wrd:#3CC7AE; --mm:#D98CF2;
-  --qn:#F2C14E; --ms:#6CC66A; --lad:#4FC3F7; --ken:#FF8AB8; --qink:#23263F;
+  --qn:#F2C14E; --ms:#6CC66A; --lad:#4FC3F7; --ken:#FF8AB8; --bb:#FFA94D; --qink:#23263F;
   --ok:#3FB96E; --warn:#E5AE2A; --bad:#FF5C5C; --absent:#2D3055; --tip:#FFD24A;
   --key:#5B6091; --keyInk:#F2F3FF; --keyUsed:#1E2142; --keyUsedInk:#5E6390; color-scheme:dark;}}
 :root[data-theme="dark"]{
   --bg:#11132A; --surface:#1B1E3C; --ink:#ECEEFF; --muted:#9CA2CC; --line:#30355F; --soft:#262A4D;
   --sdk:#8C90FF; --num:#FF7A5F; --wrd:#3CC7AE; --mm:#D98CF2;
-  --qn:#F2C14E; --ms:#6CC66A; --lad:#4FC3F7; --ken:#FF8AB8; --qink:#23263F;
+  --qn:#F2C14E; --ms:#6CC66A; --lad:#4FC3F7; --ken:#FF8AB8; --bb:#FFA94D; --qink:#23263F;
   --ok:#3FB96E; --warn:#E5AE2A; --bad:#FF5C5C; --absent:#2D3055; --tip:#FFD24A;
   --key:#5B6091; --keyInk:#F2F3FF; --keyUsed:#1E2142; --keyUsedInk:#5E6390; color-scheme:dark;}
 html,body{height:100%}
@@ -250,6 +250,27 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--acc);outline-of
 .g-ken i{height:24px;position:relative;font:700 13px/28px var(--f-body);text-align:center;color:var(--ken);font-style:normal;border:1px solid var(--line)}
 .g-ken i small{position:absolute;top:0;left:2px;font:700 7px var(--f-mono);color:var(--ink)}
 
+/* Block Blast */
+.bgrid{display:grid;grid-template-columns:repeat(8,1fr);grid-template-rows:repeat(8,1fr);gap:3px;width:100%;max-width:400px;aspect-ratio:1;margin:0 auto;padding:6px;box-sizing:border-box;border-radius:12px;background:var(--surface);border:1px solid var(--line);touch-action:none}
+.bc{border-radius:5px;background:var(--soft);min-width:0;min-height:0}
+.bc.f{box-shadow:inset 0 -3px 0 rgba(0,0,0,.22),inset 0 2px 0 rgba(255,255,255,.28)}
+.bc.pv{opacity:.5}
+.bc.clr{filter:brightness(1.2) saturate(1.2);box-shadow:inset 0 0 0 2px var(--surface)}
+.bc.hl{box-shadow:inset 0 0 0 3px var(--tip)}
+.bc.pop{animation:bpop .32s ease-in forwards}
+@keyframes bpop{to{transform:scale(.3);opacity:0}}
+.btray{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%;max-width:400px;margin:0 auto;touch-action:none}
+.bslot{display:grid;place-items:center;height:96px;border-radius:12px;padding:0;touch-action:none}
+.bslot.lift{opacity:.2}
+.bslot.hint{box-shadow:inset 0 0 0 3px var(--tip)}
+.bslot.dead{opacity:.3}
+.bmini{display:grid;gap:2px;pointer-events:none}
+.bmini i{height:14px;border-radius:3px;box-shadow:inset 0 -2px 0 rgba(0,0,0,.2)}
+.bfloat{position:fixed;left:0;top:0;z-index:30;pointer-events:none;display:grid;filter:drop-shadow(0 8px 14px rgba(0,0,0,.25))}
+.bfloat i{border-radius:5px;box-shadow:inset 0 -3px 0 rgba(0,0,0,.22),inset 0 2px 0 rgba(255,255,255,.28)}
+.g-bb{display:grid;grid-template-columns:repeat(3,16px);gap:2px}
+.g-bb i{height:16px;border-radius:3px;box-shadow:inset 0 -2px 0 rgba(0,0,0,.2)}
+
 /* Tip card */
 .tipcard{position:fixed;left:0;right:0;bottom:0;z-index:15;display:flex;justify-content:center;pointer-events:none;
   padding:0 max(10px,env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(10px,env(safe-area-inset-left,0px))}
@@ -312,6 +333,7 @@ const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",
 const TIP_COST=0.08; // score lost per revealed tip move
 const MM_COLORS=["#E5484D","#F2851A","#F5C518","#30A46C","#12A5C9","#3E63DD","#8E4EC6","#E93D82"];
 const MM_NAMES=["red","orange","yellow","green","cyan","blue","purple","pink"];
+const BB_COLORS=["#E5484D","#F2851A","#F5C518","#30A46C","#12A5C9","#3E63DD","#8E4EC6","#E93D82"];
 const QN_COLORS=["#F4A7A3","#F7C982","#F1E38A","#B4DE9C","#93D5CC","#A6C6F4","#C7B6F2","#F3B3DC","#D8C0A0","#C4CBD6"];
 
 /* ---------- Ratings ---------- */
@@ -323,7 +345,8 @@ const GAMES={
   queens:{name:"Queens",c:"var(--qn)",desc:"Bigger boards, trickier regions"},
   mines:{name:"Minesweeper",c:"var(--ms)",desc:"More mines, never a guess"},
   ladder:{name:"Word Ladder",c:"var(--lad)",desc:"Longer climbs, less common words"},
-  kenken:{name:"KenKen",c:"var(--ken)",desc:"Bigger grids, harder cages"}
+  kenken:{name:"KenKen",c:"var(--ken)",desc:"Bigger grids, harder cages"},
+  blast:{name:"Block Blast",c:"var(--bb)",desc:"Bigger pieces, higher targets"}
 };
 const RANKS=[[0,"Bronze"],[900,"Silver"],[1200,"Gold"],[1500,"Platinum"],[1800,"Diamond"],[2100,"Master"]];
 const rankOf=r=>{let n="Bronze";for(const[t,name] of RANKS) if(r>=t) n=name;return n};
@@ -446,13 +469,14 @@ const glyphs={
   mines:`<div class="g-ms">${["1","1","",'🚩',"2","o1","","1","o"].map(v=>`<i class="${v[0]==="o"?"o":""}">${v.replace("o","")}</i>`).join("")}</div>`,
   ladder:`<div class="g-lad"><span>COLD</span><span>CO<b>R</b>D</span><span><b>W</b>ORD</span><span>WAR<b>M</b></span></div>`,
   kenken:`<div class="g-ken"><i><small>3−</small>4</i><i>1</i><i><small>8×</small>2</i><i>4</i></div>`,
+  blast:`<div class="g-bb">${[0,0,-1,5,0,-1,5,5,2].map(c=>`<i style="${c<0?"visibility:hidden":`background:${BB_COLORS[c]}`}"></i>`).join("")}</div>`,
   wordle:`<div class="g-wrd">${["var(--ok)","var(--absent)","var(--warn)","var(--absent)","var(--ok)","var(--ok)","var(--warn)","var(--ok)","var(--absent)"].map(c=>`<i style="background:${c}"></i>`).join("")}</div>`
 };
 function showHome(){
   sdkPause();cur=null;hideTip();document.documentElement.style.removeProperty("--acc");
   app.innerHTML=`<header class="brand"><div class="brandrow"><h1><span>Puzzle</span> <span>Ar</span><span>cade</span></h1>
   ${Acct.available?`<button class="acctB" id="acctB" aria-label="Account">${Acct.chipHTML()}</button>`:""}</div>
-  <p>Eight puzzles, eight separate ratings. Every new puzzle is picked close to your current rating.</p></header>
+  <p>Nine puzzles, nine separate ratings. Every new puzzle is picked close to your current rating.</p></header>
   <section class="cabs">${Object.entries(GAMES).map(([g,G])=>{const s=store[g];const live=sessions[g]&&!sessions[g].done;
     return `<button class="cab" data-g="${g}" style="--c:${G.c}" aria-label="Play ${G.name}, rating ${s.r}">
       <div class="glyph">${glyphs[g]}</div>
@@ -460,7 +484,7 @@ function showHome(){
       <div class="rt"><span class="rnum">${s.r}</span><span class="chip${live?" live":""}">${live?"Resume":rankOf(s.r)}</span></div></button>`}).join("")}</section>
   <section class="howto">
     <div><b>How ratings work.</b> Everyone starts at 1000. Solving a puzzle rated above you earns more; failing one rated below you costs more. Your first 10 games in each puzzle move faster.</div>
-    <div><b>What the rating changes.</b> Sudoku asks for harder techniques: pointing pairs, then pairs, X-Wings and beyond. Solving is what counts, and a quick clean solve earns a bonus so you reach your level fast. Number Match deals tighter boards and fewer adds. Wordle draws rarer words and switches on hard mode from 1700. Mastermind adds repeats, then more pegs and colors; cracking the code in fewer guesses scores higher. Queens grows the board and needs deeper logic. Minesweeper packs in more mines but never needs a guess. Word Ladder asks for longer climbs. KenKen grows the grid and makes the cages harder to crack. Queens and KenKen score like Sudoku: mistakes cost, a quick clean solve earns a bonus.</div>
+    <div><b>What the rating changes.</b> Sudoku asks for harder techniques: pointing pairs, then pairs, X-Wings and beyond. Solving is what counts, and a quick clean solve earns a bonus so you reach your level fast. Number Match deals tighter boards and fewer adds. Wordle draws rarer words and switches on hard mode from 1700. Mastermind adds repeats, then more pegs and colors; cracking the code in fewer guesses scores higher. Queens grows the board and needs deeper logic. Minesweeper packs in more mines but never needs a guess. Word Ladder asks for longer climbs. KenKen grows the grid and makes the cages harder to crack. Block Blast deals bigger, more awkward pieces and sets a higher target score. Queens and KenKen score like Sudoku: mistakes cost, a quick clean solve earns a bonus.</div>
     <div><b>Tips.</b> Tap Tip in any game. The strategy is free. Revealing the exact move takes ${Math.round(TIP_COST*100)}% off that game's score.</div>
     <div class="ladder">${RANKS.map(([t,n])=>`<span>${n} ${t||"<900"}${t?"+":""}</span>`).join("")}</div>
   </section>`;
@@ -480,10 +504,10 @@ function openGame(g,fresh){
   $("#back").onclick=showHome;$("#help").onclick=()=>openRules(g);
   setTimeout(()=>{if(cur!==g)return;if(!sessions[g]) sessions[g]=MAKERS[g]();$("#puzR").textContent=sessions[g].puzzleR;RENDER[g]();sdkStart()},30);
 }
-function giveUpButton(onGive){
-  const b=document.createElement("button");b.className="giveup";b.textContent="Give up";
+function giveUpButton(onGive,label="Give up"){
+  const b=document.createElement("button");b.className="giveup";b.textContent=label;
   b.onclick=()=>{if(b.classList.contains("arm")){onGive();return}b.classList.add("arm");b.textContent="Tap again to give up";
-    setTimeout(()=>{b.classList.remove("arm");b.textContent="Give up"},3000)};
+    setTimeout(()=>{b.classList.remove("arm");b.textContent=label},3000)};
   return b;
 }
 const tipNote=s=>s.tipsUsed?` ${s.tipsUsed} tip move${s.tipsUsed>1?"s":""} revealed.`:"";
@@ -493,7 +517,7 @@ function finish(g,win,S,detail,mult=1,bonus=0){
   const sc=document.createElement("div");sc.className="scrim";
   const sign=res.d>0?"+":res.d<0?"−":"±";
   const newRank=rankOf(res.after)!==rankOf(res.before)?`<p><b>New rank: ${rankOf(res.after)}</b></p>`:"";
-  sc.innerHTML=`<div class="sheet" role="dialog" aria-label="Result"><h3>${win?"Solved":"Not this time"}</h3><p>${detail}${tipNote(s)}</p>
+  sc.innerHTML=`<div class="sheet" role="dialog" aria-label="Result"><h3>${g==="blast"?(win?"Target reached":"Game over"):win?"Solved":"Not this time"}</h3><p>${detail}${tipNote(s)}</p>
     <div class="delta"><strong class="${res.d>=0?"up":"down"}">${sign}${Math.abs(res.d)}</strong><span>${res.before} → ${res.after}</span></div>${newRank}
     <p style="font-size:.82rem">Puzzle ${s.puzzleR} vs you ${res.before}: expected score ${Math.round(res.E*100)}%, you scored ${Math.round(S*100)}%.${mult>1?` Speed bonus ×${mult.toFixed(1)}.`:""}${bonus?` Quick-solve bonus +${bonus}.`:""}</p>
     <div class="btns"><button class="btn" id="toHome">Arcade</button><button class="btn pri" id="next">Next puzzle</button></div></div>`;
@@ -566,6 +590,12 @@ function rulesHTML(g){
      +rule(`<div class="dstrip">${T("2")}${T("6")}<span class="ar">=</span><b class="dt sel">3÷</b></div>`,"− and ÷ work either way round, bigger number first")
      +rule(`<div class="dstrip">${T(4,"bad")}${T(4,"bad")}${T(4,"bad")}</div>`,"3 mistakes ends the game")
      +rule(`<div class="dclock">5:00</div>`,"No time pressure. A <b>quick</b> clean solve earns a bonus")}
+  if(g==="blast"){const t=s?s.target:bbTarget(store.blast.r),sq=c=>`<b class="dt" style="background:${BB_COLORS[c]}"></b>`;
+    return rule(`<div class="dstrip">${sq(0)}${sq(0)}<span class="ar">→</span>${T("")}${T("")}</div>`,"Drag pieces onto the board. They <b>can't be turned</b>")
+     +rule(`<div class="dstrip">${[0,5,2,3].map(sq).join("")}<span class="ar">✨</span></div>`,"A full row or column clears. Several at once score big")
+     +rule(`<div class="dstrip">${sq(3)}${sq(5)}${sq(1)}</div>`,"Use all three pieces to get three new ones")
+     +rule(`<div class="dclock">${t}</div>`,"Reach the <b>target score</b> to win. Every point counts toward your result")
+     +rule(`<div class="dstrip">${T("✕","bad")}</div>`,"The game ends when no piece fits")}
   return"";
 }
 function openRules(g){
@@ -1439,8 +1469,104 @@ function kkInput(d){const s=sessions.kenken;if(!s||s.done||s.sel<0||d>s.N)return
 }
 function kkErase(){const s=sessions.kenken;if(!s||s.done||s.sel<0)return;s.cur[s.sel]=0;s.notes[s.sel]=0;drawKenken()}
 
-const MAKERS={sudoku:makeSudoku,numbers:makeNumbers,wordle:makeWordle,mastermind:makeMastermind,queens:makeQueens,mines:makeMines,ladder:makeLadder,kenken:makeKenken};
-const RENDER={sudoku:renderSudoku,numbers:renderNumbers,wordle:renderWordle,mastermind:renderMastermind,queens:renderQueens,mines:renderMines,ladder:renderLadder,kenken:renderKenken};
+/* ---------- Block Blast (fill rows and columns on an 8×8 board; reach the target score) ---------- */
+// Shapes come in three classes. Higher ratings deal more of the big, awkward ones and promise less often that a whole tray fits.
+const BB=8;
+const bbShape=(rows,cls)=>({cells:rows.flatMap((r,y)=>[...r].map((ch,x)=>ch==="#"?[y,x]:null).filter(Boolean)),cls});
+const BB_BASE=[bbShape(["#"],0),bbShape(["##"],0),bbShape(["###"],0),bbShape(["##","##"],0),bbShape(["#.","##"],0),
+  bbShape(["####"],1),bbShape(["#.","#.","##"],1),bbShape([".#",".#","##"],1),bbShape(["###",".#."],1),bbShape([".##","##."],1),bbShape(["##.",".##"],1),bbShape(["###","###"],1),
+  bbShape(["#####"],2),bbShape(["###","###","###"],2),bbShape(["#..","#..","###"],2)];
+const BB_PIECES=(()=>{const out=[],seen=new Set();
+  for(const b of BB_BASE){let c=b.cells;for(let k=0;k<4;k++){c=c.map(([y,x])=>[x,-y]);const my=Math.min(...c.map(p=>p[0])),mx=Math.min(...c.map(p=>p[1]));
+    const n=c.map(([y,x])=>[y-my,x-mx]).sort((a,b)=>a[0]-b[0]||a[1]-b[1]),key=JSON.stringify(n);if(seen.has(key))continue;seen.add(key);
+    out.push({cells:n,cls:b.cls,h:Math.max(...n.map(p=>p[0]))+1,w:Math.max(...n.map(p=>p[1]))+1})}}
+  return out})();
+const bbFits=(g,p,r,c)=>r>=0&&c>=0&&r+p.h<=BB&&c+p.w<=BB&&p.cells.every(([y,x])=>!g[(r+y)*BB+c+x]);
+function bbSpots(g,p){const o=[];for(let r=0;r+p.h<=BB;r++)for(let c=0;c+p.w<=BB;c++)if(bbFits(g,p,r,c))o.push([r,c]);return o}
+function bbPlace(g,p,r,c,col){const n=g.slice();p.cells.forEach(([y,x])=>n[(r+y)*BB+c+x]=col);
+  const rows=[],cols=[];for(let i=0;i<BB;i++){if([...Array(BB)].every((_,j)=>n[i*BB+j]))rows.push(i);if([...Array(BB)].every((_,j)=>n[j*BB+i]))cols.push(i)}
+  const gone=new Set();rows.forEach(i=>{for(let j=0;j<BB;j++)gone.add(i*BB+j)});cols.forEach(i=>{for(let j=0;j<BB;j++)gone.add(j*BB+i)});
+  gone.forEach(i=>n[i]=0);return{g:n,lines:rows.length+cols.length,rows,cols,gone:[...gone]}}
+// Points: 1 per block placed, 10×k² for k lines at once, +10 per step of a clearing streak, +300 for an empty board.
+function bbPoints(p,res,combo){return p.cells.length+(res.lines?10*res.lines*res.lines+10*combo:0)+(res.lines&&res.g.every(v=>!v)?300:0)}
+function bbCanAll(g,ps){if(!ps.length)return true;
+  for(let k=0;k<ps.length;k++){const rest=ps.filter((_,j)=>j!==k);for(const[r,c]of bbSpots(g,ps[k]))if(bbCanAll(bbPlace(g,ps[k],r,c,1).g,rest))return true}return false}
+function bbTray(g,d){ // three pieces; at low ratings all three are promised to fit in some order
+  const wt=[1.4-1.1*d,1,.15+.85*d],promise=Math.random()<1-.8*d;let last=null;
+  for(let t=0;t<40;t++){const tray=[0,1,2].map(()=>{let x=Math.random()*wt.reduce((a,b)=>a+b),cls=0;while(x>wt[cls]&&cls<2){x-=wt[cls];cls++}
+      const opts=BB_PIECES.filter(p=>p.cls===cls);return{...opts[rnd(opts.length)],col:BB_COLORS[rnd(BB_COLORS.length)]}});
+    last=tray;if(promise?bbCanAll(g,tray):tray.some(p=>bbSpots(g,p).length))return tray}
+  return last;
+}
+// The bot and the tip judge a board by its open space: penalize lone holes and boards where common shapes no longer fit.
+const BB_PROBE=BB_PIECES.filter(p=>[[3,3],[1,5],[5,1],[2,2],[1,4],[4,1]].some(([h,w])=>p.h===h&&p.w===w&&p.cells.length===h*w));
+function bbEval(g){let holes=0,edges=0;
+  for(let i=0;i<BB*BB;i++){const r=(i/BB)|0,c=i%BB,nb=[[r-1,c],[r+1,c],[r,c-1],[r,c+1]].map(([a,b])=>a<0||b<0||a>=BB||b>=BB||g[a*BB+b]?1:0);
+    if(!g[i]){const f=nb.reduce((a,b)=>a+b,0);if(f>=3)holes++;}
+    if(r<BB-1&&!!g[i]!==!!g[i+BB])edges++;if(c<BB-1&&!!g[i]!==!!g[i+1])edges++}
+  return-6*holes-.6*edges+BB_PROBE.reduce((a,p)=>a+(bbSpots(g,p).length?4:-8),0)+g.filter(v=>!v).length*.4}
+function bbBest(s){let best=null;
+  s.tray.forEach((p,k)=>{if(!p)return;for(const[r,c]of bbSpots(s.g,p)){const res=bbPlace(s.g,p,r,c,p.col),v=bbPoints(p,res,s.combo+1)+bbEval(res.g);if(!best||v>best.v)best={k,r,c,v,res}}});
+  return best}
+const bbD=R=>clamp((R-500)/1700,0,1);
+// Target: about what a steady player reaches at this level. Calibrated against a greedy bot, whose median drops from endless at d=0 to ~700 at d=1.
+const bbTarget=R=>Math.round(clamp(300+(R-500)*.35,300,900)/10)*10;
+function makeBlast(){const R=targetRating("blast"),d=bbD(R),g=Array(BB*BB).fill(0);
+  return{g,d,tray:bbTray(g,d),combo:0,quiet:0,score:0,target:bbTarget(R),puzzleR:R,done:false,tipsUsed:0,hint:null,drag:null,moves:0}}
+const bbShapeOf=(s,k)=>{const p=s.tray[k];return p?`${p.cells.length}-block piece`:""};
+const bbS=s=>clamp(.5+.35*Math.log2(Math.max(s.score,1)/s.target)-TIP_COST*s.tipsUsed,0,1);
+function blastTip(s){const b=bbBest(s);if(!b)return{title:"No room left",strategy:"None of the pieces fits anywhere.",move:null};
+  return{title:b.res.lines?"Clear a line":"Keep the board open",strategy:b.res.lines?"Look for rows and columns that are one piece away from full. Clearing them, several at once if you can, scores far more than placing blocks.":"Nothing clears right now. Put pieces against the edges and each other, avoid leaving single empty squares, and keep a 3×3 space free for the big pieces.",
+    move:`Drag the ${["left","middle","right"][b.k]} piece so its top-left block lands on row ${b.r+1}, column ${b.c+1}${b.res.lines?`. That clears ${b.res.lines} line${b.res.lines>1?"s":""}`:""}.`,
+    k:b.k,r:b.r,c:b.c,action:{label:"Place it",fn:()=>{s.hint=null;bbDo(b.k,b.r,b.c)}}}}
+function renderBlast(){
+  const s=sessions.blast,st=$("#stage");
+  st.innerHTML=`<div class="info"><span>Score <b id="bbS">${s.score}</b></span><span>Target <b>${s.target}</b></span><span>Combo <b id="bbC">${s.combo>1?"×"+s.combo:"–"}</b></span></div>
+   <div class="bgrid" id="bg" role="grid" aria-label="Block Blast board"></div>
+   <div class="btray" id="bt" aria-label="Pieces"></div>
+   <p class="rule">Drag a piece onto the board. Full rows and columns clear. When none of the pieces fits, the game ends.</p>
+   <div class="tools" id="tl"></div>`;
+  $("#tl").appendChild(tipButton(()=>{const t=blastTip(s);s.hint=null;drawBlast();
+    showTip({...t,onReveal:()=>{s.hint=t.move?{k:t.k,cells:s.tray[t.k].cells.map(([y,x])=>(t.r+y)*BB+t.c+x)}:null;drawBlast()},onClose:()=>{s.hint=null;drawBlast()}})}));
+  st.appendChild(giveUpButton(()=>bbEnd("You ended the game."),"End game"));
+  $("#bt").onpointerdown=bbGrab;
+  drawBlast();
+}
+function drawBlast(){const s=sessions.blast,g=$("#bg");if(!g||!s)return;const d=s.drag,pv=new Map(),clr=new Set(),hl=new Set(s.hint?s.hint.cells:[]);
+  if(d&&d.at){const p=s.tray[d.k];p.cells.forEach(([y,x])=>pv.set((d.at[0]+y)*BB+d.at[1]+x,p.col));bbPlace(s.g,p,d.at[0],d.at[1],p.col).gone.forEach(i=>clr.add(i))}
+  g.innerHTML=s.g.map((v,i)=>{const col=v||pv.get(i),fl=s.flash&&s.flash.get(i);
+    return`<i class="bc${v?" f":""}${!v&&pv.has(i)?" f pv":""}${clr.has(i)?" clr":""}${hl.has(i)?" hl":""}${fl?" f pop":""}" style="${fl?`background:${fl}`:col?`background:${col}`:""}"></i>`}).join("");
+  $("#bt").innerHTML=s.tray.map((p,k)=>{if(!p)return`<span class="bslot"></span>`;const fits=bbSpots(s.g,p).length>0;
+    return`<button class="bslot${d&&d.k===k?" lift":""}${s.hint&&s.hint.k===k?" hint":""}${fits?"":" dead"}" data-k="${k}" aria-label="${bbShapeOf(s,k)}${fits?"":", doesn't fit"}"><span class="bmini" style="grid-template-columns:repeat(${p.w},14px)">${
+      [...Array(p.h*p.w)].map((_,i)=>`<i style="${p.cells.some(([y,x])=>y*p.w+x===i)?`background:${p.col}`:"visibility:hidden"}"></i>`).join("")}</span></button>`}).join("");
+  $("#bbS").textContent=s.score;$("#bbC").textContent=s.combo>1?"×"+s.combo:"–";
+}
+function bbGrab(e){const s=sessions.blast,b=e.target.closest(".bslot[data-k]");if(!s||s.done||!b)return;e.preventDefault();
+  const k=+b.dataset.k,p=s.tray[k],g=$("#bg"),gr=g.getBoundingClientRect(),pad=6,gap=3,cell=(gr.width-2*pad-7*gap)/BB;
+  const fl=document.createElement("div");fl.className="bfloat";fl.style.gridTemplateColumns=`repeat(${p.w},${cell}px)`;fl.style.gap=gap+"px";
+  fl.innerHTML=[...Array(p.h*p.w)].map((_,i)=>`<i style="height:${cell}px;${p.cells.some(([y,x])=>y*p.w+x===i)?`background:${p.col}`:"visibility:hidden"}"></i>`).join("");
+  document.body.appendChild(fl);if(tipState)hideTip();s.hint=null;s.drag={k,at:null};
+  const W=p.w*cell+(p.w-1)*gap,H=p.h*cell+(p.h-1)*gap,step=cell+gap;
+  const move=ev=>{const x=ev.clientX-W/2,y=ev.clientY-H-cell*1.2;fl.style.transform=`translate(${x}px,${y}px)`;
+    const r=Math.round((y-gr.top-pad)/step),c=Math.round((x-gr.left-pad)/step),at=bbFits(s.g,p,r,c)?[r,c]:null;
+    if(String(at)!==String(s.drag.at)){s.drag.at=at;drawBlast()}};
+  const up=()=>{removeEventListener("pointermove",move);removeEventListener("pointerup",up);removeEventListener("pointercancel",up);fl.remove();
+    const at=s.drag&&s.drag.at;s.drag=null;if(at)bbDo(k,at[0],at[1]);else drawBlast()};
+  addEventListener("pointermove",move);addEventListener("pointerup",up);addEventListener("pointercancel",up);move(e);drawBlast();
+}
+function bbDo(k,r,c){const s=sessions.blast,p=s.tray[k];if(!p||s.done||!bbFits(s.g,p,r,c))return;
+  const res=bbPlace(s.g,p,r,c,p.col),before=s.g.slice();p.cells.forEach(([y,x])=>before[(r+y)*BB+c+x]=p.col);
+  s.combo=res.lines?s.combo+1:(++s.quiet>=3?0:s.combo);if(res.lines)s.quiet=0;
+  const pts=bbPoints(p,res,s.combo);s.score+=pts;s.g=res.g;s.tray[k]=null;s.moves++;
+  if(res.lines){s.flash=new Map(res.gone.map(i=>[i,before[i]]));toast(`${["","","Double! ","Triple! ","Quad! "][Math.min(res.lines,4)]||"Mega! "}+${pts}${s.combo>1?` · combo ×${s.combo}`:""}`,1100);setTimeout(()=>{s.flash=null;drawBlast()},330)}
+  if(s.tray.every(x=>!x))s.tray=bbTray(s.g,s.d);
+  drawBlast();
+  if(!s.tray.some(x=>x&&bbSpots(s.g,x).length))setTimeout(()=>bbEnd("No piece fits anymore."),res.lines?650:400);
+}
+function bbEnd(why){const s=sessions.blast;if(!s||s.done)return;finish("blast",s.score>=s.target,bbS(s),`${why} You scored <b>${s.score}</b> against a target of ${s.target}.`)}
+
+const MAKERS={sudoku:makeSudoku,numbers:makeNumbers,wordle:makeWordle,mastermind:makeMastermind,queens:makeQueens,mines:makeMines,ladder:makeLadder,kenken:makeKenken,blast:makeBlast};
+const RENDER={sudoku:renderSudoku,numbers:renderNumbers,wordle:renderWordle,mastermind:renderMastermind,queens:renderQueens,mines:renderMines,ladder:renderLadder,kenken:renderKenken,blast:renderBlast};
 
 document.addEventListener("keydown",e=>{
   if(!cur||!sessions[cur]||e.metaKey||e.ctrlKey||e.altKey||document.querySelector(".scrim"))return;
@@ -1457,7 +1583,7 @@ document.addEventListener("keydown",e=>{
     else if(e.key.startsWith("Arrow")){const i=s.sel<0?40:s.sel,r=(i/9)|0,c=i%9;
       const m={ArrowUp:[-1,0],ArrowDown:[1,0],ArrowLeft:[0,-1],ArrowRight:[0,1]}[e.key];s.sel=clamp(r+m[0],0,8)*9+clamp(c+m[1],0,8);drawSudoku();e.preventDefault()}}
 });
-window.__arcade={mmTip,mmCands,mmFeedback,makeMastermind,sdkScore,sdkSecs,applyElo,sudokuTip,numbersTip,wordleTip,nmPairs,nmCan,makeSudoku,makeNumbers,makeWordle,sessions,DICT,ANSWERS,fits,bestGuess,makeQueens,queensTip,qnSolve,makeMines,msLay,minesTip,makeLadder,ladderTip,ladPath,makeKenken,kenkenTip,kkSolve,get store(){return store}};
+window.__arcade={mmTip,mmCands,mmFeedback,makeMastermind,sdkScore,sdkSecs,applyElo,sudokuTip,numbersTip,wordleTip,nmPairs,nmCan,makeSudoku,makeNumbers,makeWordle,sessions,DICT,ANSWERS,fits,bestGuess,makeQueens,queensTip,qnSolve,makeMines,msLay,minesTip,makeLadder,ladderTip,ladPath,makeKenken,kenkenTip,kkSolve,makeBlast,bbBest,bbDo,bbTray,blastTip,get store(){return store}};
 showHome();
 Acct.start();
 })();
