@@ -330,7 +330,7 @@ const rnd=n=>Math.floor(Math.random()*n);
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=rnd(i+1);[a[i],a[j]]=[a[j],a[i]]}return a};
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const TIP_COST=0.08; // score lost per revealed tip move
+const TIP_COST=0.08,TIP_PTS=20; // score lost per revealed tip move: a share in rated games, points in high-score games
 const MM_COLORS=["#E5484D","#F2851A","#F5C518","#30A46C","#12A5C9","#3E63DD","#8E4EC6","#E93D82"];
 const MM_NAMES=["red","orange","yellow","green","cyan","blue","purple","pink"];
 const BB_COLORS=["#E5484D","#F2851A","#F5C518","#30A46C","#12A5C9","#3E63DD","#8E4EC6","#E93D82"];
@@ -339,19 +339,19 @@ const QN_COLORS=["#F4A7A3","#F7C982","#F1E38A","#B4DE9C","#93D5CC","#A6C6F4","#C
 /* ---------- Ratings ---------- */
 const GAMES={
   sudoku:{name:"Sudoku",c:"var(--sdk)",desc:"Harder techniques as you climb"},
-  numbers:{name:"Number Match",c:"var(--num)",desc:"Tighter boards, fewer adds"},
+  numbers:{name:"Number Match",c:"var(--num)",desc:"Clear a board, move on to the next stage",score:true},
   wordle:{name:"Wordle",c:"var(--wrd)",desc:"Rarer words, then hard mode"},
   mastermind:{name:"Mastermind",c:"var(--mm)",desc:"More pegs and colors as you climb"},
   queens:{name:"Queens",c:"var(--qn)",desc:"Bigger boards, trickier regions"},
   mines:{name:"Minesweeper",c:"var(--ms)",desc:"More mines, never a guess"},
   ladder:{name:"Word Ladder",c:"var(--lad)",desc:"Longer climbs, less common words"},
   kenken:{name:"KenKen",c:"var(--ken)",desc:"Bigger grids, harder cages"},
-  blast:{name:"Block Blast",c:"var(--bb)",desc:"Bigger pieces, higher targets"}
+  blast:{name:"Block Blast",c:"var(--bb)",desc:"Chase your high score",score:true}
 };
 const RANKS=[[0,"Bronze"],[900,"Silver"],[1200,"Gold"],[1500,"Platinum"],[1800,"Diamond"],[2100,"Master"]];
 const rankOf=r=>{let n="Bronze";for(const[t,name] of RANKS) if(r>=t) n=name;return n};
 const KEY="eloArcade.v1",AKEY="eloArcade.account";
-const fresh=()=>({r:1000,games:0,wins:0,peak:1000,hist:[1000]});
+const fresh=()=>({r:1000,games:0,wins:0,peak:1000,hist:[1000],best:0,sc:[]}); // best/sc: high-score games
 function normalize(d){d=d&&typeof d==="object"?d:{};const o={};for(const g in GAMES)o[g]=Object.assign(fresh(),d[g]||{});return o}
 function lsGet(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}}
 function lsSet(k,v){try{v==null?localStorage.removeItem(k):localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
@@ -476,15 +476,20 @@ function showHome(){
   sdkPause();cur=null;hideTip();document.documentElement.style.removeProperty("--acc");
   app.innerHTML=`<header class="brand"><div class="brandrow"><h1><span>Puzzle</span> <span>Ar</span><span>cade</span></h1>
   ${Acct.available?`<button class="acctB" id="acctB" aria-label="Account">${Acct.chipHTML()}</button>`:""}</div>
-  <p>Nine puzzles, nine separate ratings. Every new puzzle is picked close to your current rating.</p></header>
+  <p>Seven rated puzzles, each picked close to your current rating, and two high-score games.</p></header>
   <section class="cabs">${Object.entries(GAMES).map(([g,G])=>{const s=store[g];const live=sessions[g]&&!sessions[g].done;
+    if(G.score)return `<button class="cab" data-g="${g}" style="--c:${G.c}" aria-label="Play ${G.name}, best score ${s.best}">
+      <div class="glyph">${glyphs[g]}</div>
+      <div><h2>${G.name}</h2><div class="meta">${s.sc.length?`${s.sc.length} played · last ${s.sc.at(-1)}`:G.desc}</div>${spark(s.sc,G.c)}</div>
+      <div class="rt"><span class="rnum">${s.best}</span><span class="chip${live?" live":""}">${live?"Resume":"Best"}</span></div></button>`;
     return `<button class="cab" data-g="${g}" style="--c:${G.c}" aria-label="Play ${G.name}, rating ${s.r}">
       <div class="glyph">${glyphs[g]}</div>
       <div><h2>${G.name}</h2><div class="meta">${s.games?`${s.games} played · ${Math.round(s.wins/s.games*100)}% solved`:G.desc}</div>${spark(s.hist,G.c)}</div>
       <div class="rt"><span class="rnum">${s.r}</span><span class="chip${live?" live":""}">${live?"Resume":rankOf(s.r)}</span></div></button>`}).join("")}</section>
   <section class="howto">
     <div><b>How ratings work.</b> Everyone starts at 1000. Solving a puzzle rated above you earns more; failing one rated below you costs more. Your first 10 games in each puzzle move faster.</div>
-    <div><b>What the rating changes.</b> Sudoku asks for harder techniques: pointing pairs, then pairs, X-Wings and beyond. Solving is what counts, and a quick clean solve earns a bonus so you reach your level fast. Number Match deals tighter boards and fewer adds. Wordle draws rarer words and switches on hard mode from 1700. Mastermind adds repeats, then more pegs and colors; cracking the code in fewer guesses scores higher. Queens grows the board and needs deeper logic. Minesweeper packs in more mines but never needs a guess. Word Ladder asks for longer climbs. KenKen grows the grid and makes the cages harder to crack. Block Blast deals bigger, more awkward pieces and sets a higher target score. Queens and KenKen score like Sudoku: mistakes cost, a quick clean solve earns a bonus.</div>
+    <div><b>What the rating changes.</b> Sudoku asks for harder techniques: pointing pairs, then pairs, X-Wings and beyond. Solving is what counts, and a quick clean solve earns a bonus so you reach your level fast. Wordle draws rarer words and switches on hard mode from 1700. Mastermind adds repeats, then more pegs and colors; cracking the code in fewer guesses scores higher. Queens grows the board and needs deeper logic. Minesweeper packs in more mines but never needs a guess. Word Ladder asks for longer climbs. KenKen grows the grid and makes the cages harder to crack. Queens and KenKen score like Sudoku: mistakes cost, a quick clean solve earns a bonus.</div>
+    <div><b>High-score games.</b> Number Match and Block Blast have no rating, just your best score. Number Match runs in stages: clear the board to move on and keep your points. Each stage shows fewer pairs and gives fewer adds. Block Blast deals bigger pieces as your score climbs. In these two, revealing a tip move costs ${TIP_PTS} points.</div>
     <div><b>Tips.</b> Tap Tip in any game. The strategy is free. Revealing the exact move takes ${Math.round(TIP_COST*100)}% off that game's score.</div>
     <div class="ladder">${RANKS.map(([t,n])=>`<span>${n} ${t||"<900"}${t?"+":""}</span>`).join("")}</div>
   </section>`;
@@ -496,17 +501,30 @@ function openGame(g,fresh){
   document.documentElement.style.setProperty("--acc",GAMES[g].c);
   if(fresh||!sessions[g]||sessions[g].done) sessions[g]=null;
   cur=g;
+  const sg=GAMES[g].score;
   app.innerHTML=`<div class="top"><button class="back" id="back">‹ Arcade</button><h2>${GAMES[g].name}</h2><button class="help" id="help" aria-label="How to play">?</button></div>
-  <div class="vs"><div><small>You</small><strong id="youR">${store[g].r}</strong></div>
-  <div class="mid"><small id="rankL">${rankOf(store[g].r)}</small></div>
-  <div class="right"><small>Puzzle</small><strong id="puzR">…</strong></div></div>
-  <div class="stage" id="stage"><div class="loading">Building a puzzle at your level…</div></div>`;
+  <div class="vs"><div><small>${sg?"Best":"You"}</small><strong id="youR">${sg?store[g].best:store[g].r}</strong></div>
+  <div class="mid"><small id="rankL">${sg?"":rankOf(store[g].r)}</small></div>
+  <div class="right"><small>${sg?"Score":"Puzzle"}</small><strong id="puzR">…</strong></div></div>
+  <div class="stage" id="stage"><div class="loading">${sg?"Dealing the board…":"Building a puzzle at your level…"}</div></div>`;
   $("#back").onclick=showHome;$("#help").onclick=()=>openRules(g);
-  setTimeout(()=>{if(cur!==g)return;if(!sessions[g]) sessions[g]=MAKERS[g]();$("#puzR").textContent=sessions[g].puzzleR;RENDER[g]();sdkStart()},30);
+  setTimeout(()=>{if(cur!==g)return;if(!sessions[g]) sessions[g]=MAKERS[g]();if(sg)hud(sessions[g]);else $("#puzR").textContent=sessions[g].puzzleR;RENDER[g]();sdkStart()},30);
+}
+// Live score and stage in the header of a high-score game
+function hud(s){const p=$("#puzR"),m=$("#rankL");if(p)p.textContent=s.score;if(m)m.textContent=s.stage?`Stage ${s.stage}`:"";
+  const y=$("#youR");if(y&&cur&&GAMES[cur].score)y.textContent=Math.max(store[cur].best,s.score)}
+function finishScore(g,detail){const s=sessions[g];if(s.done)return;s.done=true;hideTip();sdkPause();
+  const st=store[g],prev=st.best,rec=s.score>prev&&s.score>0;st.games++;st.best=Math.max(prev,s.score);st.sc.push(s.score);if(st.sc.length>30)st.sc.shift();save();
+  const sc=document.createElement("div");sc.className="scrim";
+  sc.innerHTML=`<div class="sheet" role="dialog" aria-label="Result"><h3>${rec?"New high score!":"Game over"}</h3><p>${detail}${tipNote(s)}</p>
+    <div class="delta"><strong class="up">${s.score}</strong><span>${rec?(prev?`old best ${prev}`:"first score"):`best ${st.best}`}</span></div>
+    <div class="btns"><button class="btn" id="toHome">Arcade</button><button class="btn pri" id="next">Play again</button></div></div>`;
+  setTimeout(()=>{document.body.appendChild(sc);$("#next",sc).focus()},450);
+  $("#toHome",sc).onclick=()=>{sc.remove();showHome()};$("#next",sc).onclick=()=>{sc.remove();openGame(g,true)};
 }
 function giveUpButton(onGive,label="Give up"){
   const b=document.createElement("button");b.className="giveup";b.textContent=label;
-  b.onclick=()=>{if(b.classList.contains("arm")){onGive();return}b.classList.add("arm");b.textContent="Tap again to give up";
+  b.onclick=()=>{if(b.classList.contains("arm")){onGive();return}b.classList.add("arm");b.textContent=label==="Give up"?"Tap again to give up":"Tap again to end";
     setTimeout(()=>{b.classList.remove("arm");b.textContent=label},3000)};
   return b;
 }
@@ -517,7 +535,7 @@ function finish(g,win,S,detail,mult=1,bonus=0){
   const sc=document.createElement("div");sc.className="scrim";
   const sign=res.d>0?"+":res.d<0?"−":"±";
   const newRank=rankOf(res.after)!==rankOf(res.before)?`<p><b>New rank: ${rankOf(res.after)}</b></p>`:"";
-  sc.innerHTML=`<div class="sheet" role="dialog" aria-label="Result"><h3>${g==="blast"?(win?"Target reached":"Game over"):win?"Solved":"Not this time"}</h3><p>${detail}${tipNote(s)}</p>
+  sc.innerHTML=`<div class="sheet" role="dialog" aria-label="Result"><h3>${win?"Solved":"Not this time"}</h3><p>${detail}${tipNote(s)}</p>
     <div class="delta"><strong class="${res.d>=0?"up":"down"}">${sign}${Math.abs(res.d)}</strong><span>${res.before} → ${res.after}</span></div>${newRank}
     <p style="font-size:.82rem">Puzzle ${s.puzzleR} vs you ${res.before}: expected score ${Math.round(res.E*100)}%, you scored ${Math.round(S*100)}%.${mult>1?` Speed bonus ×${mult.toFixed(1)}.`:""}${bonus?` Quick-solve bonus +${bonus}.`:""}</p>
     <div class="btns"><button class="btn" id="toHome">Arcade</button><button class="btn pri" id="next">Next puzzle</button></div></div>`;
@@ -550,7 +568,9 @@ function rulesHTML(g){
      +rule(`<div class="dstrip">${T(4)}${T("","gone")}${T("","gone")}${T(4)}</div>${OK}`,"Cleared cells don't block")
      +rule(`<div class="dwrap"><div class="dstrip"><span class="dots">…</span>${T(2)}</div><div class="dstrip">${T(8)}<span class="dots">…</span></div></div>${OK}`,"A row's end links to the next row's start")
      +rule(`<div class="dstrip"><span class="dbtn">＋ Add</span></div>`,"Copies the numbers left to the end")
-     +rule(`<div class="dstrip">${T("","gone")}${T("","gone")}${T("","gone")}<span class="ar">↑</span></div>`,"Empty rows disappear. Clear the board to win");
+     +rule(`<div class="dstrip">${T("","gone")}${T("","gone")}${T("","gone")}<span class="ar">↑</span></div>`,"Empty rows disappear. Clear the board to reach the <b>next stage</b>")
+     +rule(`<div class="dclock">+${NM_PAIR}</div>`,`${NM_PAIR} per pair, ${NM_ROW} per cleared row, a stage bonus plus 50 per add left over`)
+     +rule(`<div class="dclock">${s&&s.stage?`Stage ${s.stage}`:"Stage 1"}</div>`,"Points carry over. Stuck with no adds left ends the game");
   }
   if(g==="wordle"){
     const ex=["c","r","a","n","e"],cl=["c","a","p","a","a"];
@@ -590,11 +610,12 @@ function rulesHTML(g){
      +rule(`<div class="dstrip">${T("2")}${T("6")}<span class="ar">=</span><b class="dt sel">3÷</b></div>`,"− and ÷ work either way round, bigger number first")
      +rule(`<div class="dstrip">${T(4,"bad")}${T(4,"bad")}${T(4,"bad")}</div>`,"3 mistakes ends the game")
      +rule(`<div class="dclock">5:00</div>`,"No time pressure. A <b>quick</b> clean solve earns a bonus")}
-  if(g==="blast"){const t=s?s.target:bbTarget(store.blast.r),sq=c=>`<b class="dt" style="background:${BB_COLORS[c]}"></b>`;
+  if(g==="blast"){const sq=c=>`<b class="dt" style="background:${BB_COLORS[c]}"></b>`;
     return rule(`<div class="dstrip">${sq(0)}${sq(0)}<span class="ar">→</span>${T("")}${T("")}</div>`,"Drag pieces onto the board. They <b>can't be turned</b>")
      +rule(`<div class="dstrip">${[0,5,2,3].map(sq).join("")}<span class="ar">✨</span></div>`,"A full row or column clears. Several at once score big")
      +rule(`<div class="dstrip">${sq(3)}${sq(5)}${sq(1)}</div>`,"Use all three pieces to get three new ones")
-     +rule(`<div class="dclock">${t}</div>`,"Reach the <b>target score</b> to win. Every point counts toward your result")
+     +rule(`<div class="dclock">+${10*3*3}</div>`,"1 point per block, <b>10×lines²</b> for lines cleared at once, more for clearing streaks")
+     +rule(`<div class="dclock">${store.blast.best}</div>`,"Beat your <b>best score</b>. Pieces get bigger as your score climbs")
      +rule(`<div class="dstrip">${T("✕","bad")}</div>`,"The game ends when no piece fits")}
   return"";
 }
@@ -602,7 +623,7 @@ function openRules(g){
   sdkPause();
   const sc=document.createElement("div");sc.className="scrim";
   sc.innerHTML=`<div class="sheet rules" role="dialog" aria-label="How to play"><h3>How to play</h3>${rulesHTML(g)}
-    ${rule(`<span class="tool tipB dtip">Tip</span>`,`Strategy free · move −${Math.round(TIP_COST*100)}%`)}
+    ${rule(`<span class="tool tipB dtip">Tip</span>`,`Strategy free · move −${GAMES[g].score?`${TIP_PTS} points`:`${Math.round(TIP_COST*100)}%`}`)}
     <div class="btns"><button class="btn pri" id="rOk">Got it</button></div></div>`;
   const close=()=>{sc.remove();if(cur===g)sdkStart()};
   sc.onclick=e=>{if(e.target===sc)close()};$("#rOk",sc).onclick=close;
@@ -621,8 +642,8 @@ function showTip(tip){
     if(st.stage===1){
       t.innerHTML=`<div class="tipin" role="dialog" aria-label="Tip"><div class="tiphead"><span class="tipstep">Strategy</span><button class="x" id="tx" aria-label="Close tip">×</button></div>
        <h4>${st.title}</h4><p>${st.strategy}</p>
-       <div class="btns">${st.move?`<button class="btn pri" id="tm">Show the move${st.free?"":` (−${Math.round(TIP_COST*100)}%)`}</button>`:`<button class="btn pri" id="tc">Got it</button>`}</div></div>`;
-      const tm=$("#tm",t);if(tm)tm.onclick=()=>{st.stage=2;if(!st.free&&!st.counted){s.tipsUsed=(s.tipsUsed||0)+1;st.counted=true}st.onReveal&&st.onReveal();draw()};
+       <div class="btns">${st.move?`<button class="btn pri" id="tm">Show the move${st.free?"":GAMES[cur].score?` (−${TIP_PTS} points)`:` (−${Math.round(TIP_COST*100)}%)`}</button>`:`<button class="btn pri" id="tc">Got it</button>`}</div></div>`;
+      const tm=$("#tm",t);if(tm)tm.onclick=()=>{st.stage=2;if(!st.free&&!st.counted){s.tipsUsed=(s.tipsUsed||0)+1;st.counted=true;if(GAMES[cur].score){s.score=Math.max(0,s.score-TIP_PTS);hud(s)}}st.onReveal&&st.onReveal();draw()};
     }else{
       t.innerHTML=`<div class="tipin" role="dialog" aria-label="Tip"><div class="tiphead"><span class="tipstep">Next move</span><button class="x" id="tx" aria-label="Close tip">×</button></div>
        <p>${st.move}</p>
@@ -853,9 +874,12 @@ function nmPairs(cells){ // every open pair, found by walking forward in four di
 }
 function nmCleanCells(cells){const rows=[];for(let i=0;i<cells.length;i+=W)rows.push(cells.slice(i,i+W));
   const kept=rows.filter(r=>r.some(c=>!c.x));let out=kept.flat();while(out.length&&out.at(-1).x)out.pop();return{cells:out,cleared:rows.length-kept.length}}
-function makeNumbers(){
-  const R=targetRating("numbers"),t=clamp((R-600)/1500,0,1);
-  const adds=Math.round(5-t*3),want=Math.round(6-t*4); // pairs in view at the start: 6 for beginners, down to 2
+// Stages: each cleared board leads to a harder one. Points carry over until you get stuck.
+// 10 per pair, 40 per cleared row, and a stage bonus of 100×stage plus 50 per add left over.
+const NM_PAIR=10,NM_ROW=40;
+function makeNumbers(){return{...nmBoard(1),stage:1,score:0,sel:-1,done:false,tipsUsed:0,hint:null}}
+function nmBoard(stage){
+  const t=clamp((stage-1)/7,0,1),adds=Math.round(5-t*3),want=Math.round(6-t*4); // pairs in view at the start: 6 on stage 1, down to 2 from stage 8
   // Random board, then re-roll numbers that sit in a pair until only a few pairs show. No digit may take over the board.
   let b=null;
   for(let k=0;k<20&&!(b&&b.open===want);k++){const cells=Array.from({length:START},()=>({v:1+rnd(9),x:false})),cnt=Array(10).fill(0);
@@ -864,7 +888,7 @@ function makeNumbers(){
       if(v===old||cnt[v]>=7)continue;cells[i].v=v;const n=nmPairs(cells).length;
       if(n<=open&&n>=1){open=n;cnt[old]--;cnt[v]++}else cells[i].v=old}
     if(!b||Math.abs(open-want)<Math.abs(b.open-want))b={cells,open}}
-  return{cells:b.cells,adds,sel:-1,puzzleR:R,open:b.open,done:false,tipsUsed:0,hint:null};
+  return{cells:b.cells,adds,open:b.open};
 }
 function numbersTip(s){
   const pairs=nmPairs(s.cells);
@@ -895,13 +919,13 @@ function numbersTip(s){
 }
 function renderNumbers(){
   const s=sessions.numbers,st=$("#stage");
-  st.innerHTML=`<div class="info"><span>Left <b id="nLeft"></b></span><span>Pairs open <b id="nOpen"></b></span><span>Adds <b id="nAdds"></b></span></div>
+  st.innerHTML=`<div class="info"><span>Stage <b id="nStage">${s.stage}</b></span><span>Left <b id="nLeft"></b></span><span>Pairs <b id="nOpen"></b></span><span>Adds <b id="nAdds"></b></span></div>
    <div class="nwrap" id="nwrap"><div class="ngrid" id="ng"></div></div>
    <p class="rule">Tap two equal numbers or two that add up to 10. They must touch sideways, up-down or diagonally, with only cleared cells between. A row's end links to the next row's start.</p>
    <div class="tools" id="tl"><button class="tool" id="addB">＋ Add numbers</button></div>`;
   $("#tl").appendChild(tipButton(()=>{const t=numbersTip(s);s.hint=null;drawNumbers();
     showTip({...t,onReveal:()=>{s.hint=t.pair||null;drawNumbers();const el=t.pair&&$(`.nc[data-i="${t.pair[0]}"]`);el&&el.scrollIntoView({block:"nearest",behavior:"smooth"})},onClose:()=>{s.hint=null;drawNumbers()}})}));
-  st.appendChild(giveUpButton(()=>finish("numbers",false,0,"You stepped away from this board.")));
+  st.appendChild(giveUpButton(()=>finishScore("numbers",`You stopped on stage ${s.stage}.`),"End game"));
   $("#addB").onclick=nmAdd;drawNumbers();
 }
 function drawNumbers(){
@@ -910,22 +934,23 @@ function drawNumbers(){
   ng.innerHTML=s.cells.map((c,i)=>`<button class="nc${c.x?" x":""}${i===s.sel?" sel":""}${hint&&hint.includes(i)?" hint":""}" data-i="${i}" ${c.x?'tabindex="-1" aria-hidden="true"':`aria-label="${c.v}"`}>${c.v}</button>`).join("")+'<span class="nc blank"></span>'.repeat(pad);
   ng.querySelectorAll(".nc[data-i]").forEach(b=>b.onclick=()=>nmTap(+b.dataset.i));
   $("#nLeft").textContent=s.cells.filter(c=>!c.x).length;$("#nOpen").textContent=nmPairs(s.cells).length;$("#nAdds").textContent=s.adds;
-  $("#addB").disabled=s.adds<=0||s.done;
+  $("#addB").disabled=s.adds<=0||s.done;$("#nStage").textContent=s.stage;hud(s);
 }
 function nmMatch(a,b){const s=sessions.numbers;s.cells[a].x=true;s.cells[b].x=true;s.sel=-1;s.hint=null;
-  const cl=nmCleanCells(s.cells);s.cells=cl.cells;drawNumbers();if(cl.cleared)toast(cl.cleared>1?`${cl.cleared} rows cleared`:"Row cleared",900);nmCheck()}
+  const cl=nmCleanCells(s.cells);s.cells=cl.cells;s.score+=NM_PAIR+NM_ROW*cl.cleared;drawNumbers();if(cl.cleared)toast(`${cl.cleared>1?`${cl.cleared} rows`:"Row"} cleared · +${NM_ROW*cl.cleared}`,900);nmCheck()}
 function nmTap(i){
-  const s=sessions.numbers;if(s.done||s.cells[i].x)return;
+  const s=sessions.numbers;if(s.done||s.busy||s.cells[i].x)return;
   if(s.sel<0){s.sel=i;drawNumbers();return}
   if(s.sel===i){s.sel=-1;drawNumbers();return}
   if(nmCan(s.cells,s.sel,i)){if(tipState)hideTip();nmMatch(s.sel,i);return}
   s.sel=i;drawNumbers();const n=$(`.nc[data-i="${i}"]`);if(n)n.classList.add("bad");
 }
-function nmAdd(){const s=sessions.numbers;if(s.done||s.adds<=0)return;const rest=s.cells.filter(c=>!c.x).map(c=>({v:c.v,x:false}));
+function nmAdd(){const s=sessions.numbers;if(s.done||s.busy||s.adds<=0)return;const rest=s.cells.filter(c=>!c.x).map(c=>({v:c.v,x:false}));
   s.cells=s.cells.concat(rest);s.adds--;s.sel=-1;s.hint=null;drawNumbers();const w=$("#nwrap");if(w)w.scrollTop=w.scrollHeight;nmCheck()}
 function nmCheck(){const s=sessions.numbers;
-  if(!s.cells.some(c=>!c.x)){finish("numbers",true,Math.max(.3,1-TIP_COST*s.tipsUsed),`Board cleared with ${s.adds} add${s.adds===1?"":"s"} to spare.`);return}
-  if(!nmPairs(s.cells).length&&s.adds<=0){const left=s.cells.filter(c=>!c.x).length;finish("numbers",false,0,`No pairs and no adds left, ${left} numbers remaining.`)}}
+  if(!s.cells.some(c=>!c.x)){const bonus=100*s.stage+50*s.adds;s.score+=bonus;s.busy=true;toast(`Stage ${s.stage} cleared · +${bonus}`,1800);hud(s);
+    setTimeout(()=>{if(s.done||sessions.numbers!==s)return;s.stage++;Object.assign(s,nmBoard(s.stage),{sel:-1,hint:null,busy:false});if(cur==="numbers")renderNumbers()},1400);return}
+  if(!nmPairs(s.cells).length&&s.adds<=0){const left=s.cells.filter(c=>!c.x).length;finishScore("numbers",`Stuck on stage ${s.stage} with ${left} numbers left.`)}}
 
 /* ---------- Wordle ---------- */
 const TIERS={"easy":["about","above","actor","adult","after","again","agree","ahead","alarm","album","alive","allow","alone","along","angry","apple","apply","arena","argue","aside","award","awake","basic","beach","begin","being","below","bench","birth","black","blame","blank","blind","block","blood","board","boost","brain","brand","brave","bread","break","brick","bride","brief","bring","broad","brown","brush","build","bunch","buyer","cabin","cable","candy","carry","catch","cause","chain","chair","chalk","charm","chart","cheap","check","chest","chief","child","china","claim","class","clean","clear","climb","clock","close","cloth","cloud","coach","coast","color","count","court","cover","crash","cream","crime","cross","crowd","crown","dance","dirty","doubt","dozen","draft","drama","dream","dress","drink","drive","early","earth","eight","elbow","empty","enemy","enjoy","enter","equal","error","event","every","exact","exist","extra","faith","false","fault","favor","field","fifth","fifty","fight","final","first","flame","flash","floor","flour","fluid","focus","force","forty","found","frame","fresh","front","fruit","funny","ghost","giant","given","glass","globe","glove","grace","grade","grain","grand","grant","grass","great","green","group","guard","guess","guest","guide","happy","heart","heavy","horse","hotel","house","human","humor","ideal","image","issue","joint","judge","juice","knife","label","large","laugh","layer","learn","least","leave","legal","lemon","level","light","limit","local","lucky","lunch","magic","major","maker","march","match","maybe","mayor","meant","medal","metal","minor","model","money","month","moral","motor","mount","mouse","mouth","movie","music","nerve","never","night","noise","north","novel","nurse","ocean","offer","often","order","other","owner","paint","panel","paper","party","peace","phase","phone","photo","piano","piece","pilot","pitch","pizza","place","plain","plane","plant","plate","point","pound","power","press","price","pride","prime","print","prize","proof","proud","queen","quick","quiet","quite","radio","raise","range","rapid","reach","ready","right","river","robot","rough","round","route","royal","rural","salad","scale","scene","scope","score","sense","serve","seven","shade","shake","shape","share","sharp","sheep","sheet","shelf","shell","shift","shirt","shock","shoot","short","shout","sight","skill","sleep","slice","slide","small","smart","smile","smoke","snake","solid","solve","sorry","sound","south","space","speak","speed","spend","spoon","sport","staff","stage","stair","stamp","stand","start","state","steam","steel","stick","still","stock","stone","store","storm","story","stove","style","sugar","suite","sunny","super","sweet","table","taste","teach","teeth","thank","theme","thick","thing","think","third","three","throw","thumb","tiger","tired","title","toast","today","topic","total","touch","tower","track","trade","train","treat","trend","trial","truck","truly","trust","truth","twice","uncle","under","union","until","upper","upset","urban","usual","value","video","visit","voice","waste","watch","water","wheel","where","which","while","white","whole","woman","world","worry","write","wrong","young","youth","zebra"],"med":["abbey","acorn","adore","agile","alley","amber","amble","angel","ankle","apron","arbor","ardor","aroma","askew","aspen","atlas","attic","audit","avoid","badge","bagel","baker","banjo","barge","baron","basin","baton","belch","berth","bison","blaze","bleak","bliss","bloom","bluff","blunt","blurt","blush","boast","bongo","booth","bough","brace","braid","brash","brawl","brine","brink","brisk","broth","brute","budge","bugle","bulge","burly","bylaw","cache","camel","canoe","caper","cargo","carve","cedar","chant","chasm","cheer","chess","chime","chord","chunk","cider","cinch","civic","clamp","clasp","cleft","cling","cloak","clove","comet","coral","couch","crane","crate","crave","creek","crept","crest","crisp","croak","crumb","crust","cubic","curly","cycle","daisy","decoy","delta","denim","depot","dodge","dough","dowel","drape","drift","drone","dwarf","dwell","eager","eagle","easel","ebony","elder","elope","ember","epoch","evict","exile","fable","feast","feign","ferry","fiber","flair","flask","fleet","flick","fling","flint","flock","flora","flute","focal","foggy","forge","forgo","frail","frost","froth","gauge","gavel","gecko","gleam","glint","gloom","gnome","gourd","grail","grape","gravy","graze","grill","grind","gripe","groan","grove","growl","gruel","guild","guise","gusty","habit","harsh","hasty","hatch","haunt","haven","hazel","hedge","heron","hinge","hoist","hound","husky","icing","igloo","inlet","irony","ivory","jelly","jewel","jolly","joust","kayak","knack","knead","kneel","knelt","koala","lance","lapse","latch","lathe","leafy","ledge","lever","lilac","linen","llama","lodge","lofty","lunar","lurch","lyric","mango","manor","maple","marsh","mirth","moist","molar","moose","mossy","mound","mourn","mural","nacho","noble","notch","nudge","nylon","oasis","olive","onset","opera","otter","oxide","panda","pansy","parka","patio","pearl","pecan","perch","petal","plaid","plank","plume","plush","poker","polar","pouch","prawn","prism","prong","prune","pulse","quail","quake","quell","quill","quirk","quota","radar","rally","ranch","raven","realm","rebel","relic","ridge","rivet","roost","rusty","saint","satin","sauce","savor","scald","scalp","scarf","scorn","scout","scrub","shard","shawl","sheen","shrub","siege","sigma","skate","skull","slant","sleek","sleet","sling","sloth","slump","smirk","snare","sneak","snore","spade","spark","spawn","spear","spice","spine","spoil","spore","spurn","squid","stain","stalk","stark","steed","stoic","stomp","stork","stout","straw","stray","strum","stump","surge","swamp","swirl","sword","syrup","tango","tapir","taunt","thief","thorn","tidal","toxic","tread","trout","truce","tulip","tunic","tweak","twirl","udder","ulcer","umber","unify","usher","valve","vapor","vault","venom","verge","vigor","viola","vivid","vocal","vodka","wafer","waltz","weary","wedge","whale","whisk","widen","witty","woven","wrath","yacht","yearn","yeast","zesty"],"hard":["abyss","affix","agape","alibi","amity","anvil","aorta","aphid","axiom","azure","banal","bayou","befit","bigot","bilge","blimp","borax","bosom","cacao","cairn","caulk","chaff","churl","clout","codex","comma","coupe","coven","covey","crypt","cynic","dally","deign","delve","dirge","dogma","dowdy","droll","duvet","dwelt","eclat","egret","elegy","ennui","epoxy","ether","evoke","exult","fakir","farce","fetid","fjord","flail","fluke","folly","frond","fugue","gaffe","gaudy","gawky","gizmo","glean","glyph","gnash","gouge","guano","gusto","havoc","helix","hovel","hutch","hydra","hyena","idyll","impel","inane","inept","infer","ingot","inlay","irate","jaunt","jiffy","junta","kiosk","knoll","kudzu","lapel","leery","libel","lithe","livid","loath","lumen","lymph","mauve","miser","motif","murky","nadir","naive","nymph","oaken","octet","offal","ovoid","paean","parch","parry","pique","plait","privy","psalm","pygmy","quaff","qualm","quasi","quash","rebus","recur","regal","rheum","rhyme","roust","rupee","satyr","scion","sedan","shoal","sinew","skulk","slosh","sylph","tacit","talon","tawny","tenet","thyme","tibia","tipsy","toady","topaz","triad","tryst","tumid","umbel","unzip","usurp","vapid","vexed","vigil","vixen","vouch","wager","whelp","wield","wonky","wryly","xenon","yodel","yokel","yucca","zilch","zonal"]};
@@ -1508,20 +1533,18 @@ function bbEval(g){let holes=0,edges=0;
 function bbBest(s){let best=null;
   s.tray.forEach((p,k)=>{if(!p)return;for(const[r,c]of bbSpots(s.g,p)){const res=bbPlace(s.g,p,r,c,p.col),v=bbPoints(p,res,s.combo+1)+bbEval(res.g);if(!best||v>best.v)best={k,r,c,v,res}}});
   return best}
-const bbD=R=>clamp((R-500)/1700,0,1);
-// Target: about what a steady player reaches at this level. Calibrated against a greedy bot, whose median drops from endless at d=0 to ~700 at d=1.
-const bbTarget=R=>Math.round(clamp(300+(R-500)*.35,300,900)/10)*10;
-function makeBlast(){const R=targetRating("blast"),d=bbD(R),g=Array(BB*BB).fill(0);
-  return{g,d,tray:bbTray(g,d),combo:0,quiet:0,score:0,target:bbTarget(R),puzzleR:R,done:false,tipsUsed:0,hint:null,drag:null,moves:0}}
+// Difficulty climbs with the score: friendly trays at first, then more big pieces and fewer promises that a tray fits.
+// A greedy bot (bbBest) plays forever at d=0 and averages ~700 points at d=1, so the ramp tops out at .85.
+const bbD=score=>clamp(.1+score/5000,.1,.85);
+function makeBlast(){const g=Array(BB*BB).fill(0);return{g,tray:bbTray(g,bbD(0)),combo:0,quiet:0,score:0,done:false,tipsUsed:0,hint:null,drag:null,moves:0}}
 const bbShapeOf=(s,k)=>{const p=s.tray[k];return p?`${p.cells.length}-block piece`:""};
-const bbS=s=>clamp(.5+.35*Math.log2(Math.max(s.score,1)/s.target)-TIP_COST*s.tipsUsed,0,1);
 function blastTip(s){const b=bbBest(s);if(!b)return{title:"No room left",strategy:"None of the pieces fits anywhere.",move:null};
   return{title:b.res.lines?"Clear a line":"Keep the board open",strategy:b.res.lines?"Look for rows and columns that are one piece away from full. Clearing them, several at once if you can, scores far more than placing blocks.":"Nothing clears right now. Put pieces against the edges and each other, avoid leaving single empty squares, and keep a 3×3 space free for the big pieces.",
     move:`Drag the ${["left","middle","right"][b.k]} piece so its top-left block lands on row ${b.r+1}, column ${b.c+1}${b.res.lines?`. That clears ${b.res.lines} line${b.res.lines>1?"s":""}`:""}.`,
     k:b.k,r:b.r,c:b.c,action:{label:"Place it",fn:()=>{s.hint=null;bbDo(b.k,b.r,b.c)}}}}
 function renderBlast(){
   const s=sessions.blast,st=$("#stage");
-  st.innerHTML=`<div class="info"><span>Score <b id="bbS">${s.score}</b></span><span>Target <b>${s.target}</b></span><span>Combo <b id="bbC">${s.combo>1?"×"+s.combo:"–"}</b></span></div>
+  st.innerHTML=`<div class="info"><span>Pieces placed <b id="bbN">${s.moves}</b></span><span>Combo <b id="bbC">${s.combo>1?"×"+s.combo:"–"}</b></span></div>
    <div class="bgrid" id="bg" role="grid" aria-label="Block Blast board"></div>
    <div class="btray" id="bt" aria-label="Pieces"></div>
    <p class="rule">Drag a piece onto the board. Full rows and columns clear. When none of the pieces fits, the game ends.</p>
@@ -1539,7 +1562,7 @@ function drawBlast(){const s=sessions.blast,g=$("#bg");if(!g||!s)return;const d=
   $("#bt").innerHTML=s.tray.map((p,k)=>{if(!p)return`<span class="bslot"></span>`;const fits=bbSpots(s.g,p).length>0;
     return`<button class="bslot${d&&d.k===k?" lift":""}${s.hint&&s.hint.k===k?" hint":""}${fits?"":" dead"}" data-k="${k}" aria-label="${bbShapeOf(s,k)}${fits?"":", doesn't fit"}"><span class="bmini" style="grid-template-columns:repeat(${p.w},14px)">${
       [...Array(p.h*p.w)].map((_,i)=>`<i style="${p.cells.some(([y,x])=>y*p.w+x===i)?`background:${p.col}`:"visibility:hidden"}"></i>`).join("")}</span></button>`}).join("");
-  $("#bbS").textContent=s.score;$("#bbC").textContent=s.combo>1?"×"+s.combo:"–";
+  $("#bbN").textContent=s.moves;$("#bbC").textContent=s.combo>1?"×"+s.combo:"–";hud(s);
 }
 function bbGrab(e){const s=sessions.blast,b=e.target.closest(".bslot[data-k]");if(!s||s.done||!b)return;e.preventDefault();
   const k=+b.dataset.k,p=s.tray[k],g=$("#bg"),gr=g.getBoundingClientRect(),pad=6,gap=3,cell=(gr.width-2*pad-7*gap)/BB;
@@ -1559,11 +1582,11 @@ function bbDo(k,r,c){const s=sessions.blast,p=s.tray[k];if(!p||s.done||!bbFits(s
   s.combo=res.lines?s.combo+1:(++s.quiet>=3?0:s.combo);if(res.lines)s.quiet=0;
   const pts=bbPoints(p,res,s.combo);s.score+=pts;s.g=res.g;s.tray[k]=null;s.moves++;
   if(res.lines){s.flash=new Map(res.gone.map(i=>[i,before[i]]));toast(`${["","","Double! ","Triple! ","Quad! "][Math.min(res.lines,4)]||"Mega! "}+${pts}${s.combo>1?` · combo ×${s.combo}`:""}`,1100);setTimeout(()=>{s.flash=null;drawBlast()},330)}
-  if(s.tray.every(x=>!x))s.tray=bbTray(s.g,s.d);
+  if(s.tray.every(x=>!x))s.tray=bbTray(s.g,bbD(s.score));
   drawBlast();
   if(!s.tray.some(x=>x&&bbSpots(s.g,x).length))setTimeout(()=>bbEnd("No piece fits anymore."),res.lines?650:400);
 }
-function bbEnd(why){const s=sessions.blast;if(!s||s.done)return;finish("blast",s.score>=s.target,bbS(s),`${why} You scored <b>${s.score}</b> against a target of ${s.target}.`)}
+function bbEnd(why){const s=sessions.blast;if(!s||s.done)return;finishScore("blast",`${why} ${s.moves} pieces placed.`)}
 
 const MAKERS={sudoku:makeSudoku,numbers:makeNumbers,wordle:makeWordle,mastermind:makeMastermind,queens:makeQueens,mines:makeMines,ladder:makeLadder,kenken:makeKenken,blast:makeBlast};
 const RENDER={sudoku:renderSudoku,numbers:renderNumbers,wordle:renderWordle,mastermind:renderMastermind,queens:renderQueens,mines:renderMines,ladder:renderLadder,kenken:renderKenken,blast:renderBlast};
@@ -1583,7 +1606,7 @@ document.addEventListener("keydown",e=>{
     else if(e.key.startsWith("Arrow")){const i=s.sel<0?40:s.sel,r=(i/9)|0,c=i%9;
       const m={ArrowUp:[-1,0],ArrowDown:[1,0],ArrowLeft:[0,-1],ArrowRight:[0,1]}[e.key];s.sel=clamp(r+m[0],0,8)*9+clamp(c+m[1],0,8);drawSudoku();e.preventDefault()}}
 });
-window.__arcade={mmTip,mmCands,mmFeedback,makeMastermind,sdkScore,sdkSecs,applyElo,sudokuTip,numbersTip,wordleTip,nmPairs,nmCan,makeSudoku,makeNumbers,makeWordle,sessions,DICT,ANSWERS,fits,bestGuess,makeQueens,queensTip,qnSolve,makeMines,msLay,minesTip,makeLadder,ladderTip,ladPath,makeKenken,kenkenTip,kkSolve,makeBlast,bbBest,bbDo,bbTray,blastTip,get store(){return store}};
+window.__arcade={mmTip,mmCands,mmFeedback,makeMastermind,sdkScore,sdkSecs,applyElo,sudokuTip,numbersTip,wordleTip,nmPairs,nmCan,makeSudoku,makeNumbers,makeWordle,sessions,DICT,ANSWERS,fits,bestGuess,makeQueens,queensTip,qnSolve,makeMines,msLay,minesTip,makeLadder,ladderTip,ladPath,makeKenken,kenkenTip,kkSolve,makeBlast,bbBest,bbDo,bbTray,blastTip,nmBoard,nmCheck,finishScore,get store(){return store}};
 showHome();
 Acct.start();
 })();

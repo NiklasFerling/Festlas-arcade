@@ -1,11 +1,12 @@
 # Puzzle Arcade
 
-A phone-first PWA with nine puzzle games (Sudoku, Number Match, Wordle, Mastermind, Queens, Minesweeper, Word Ladder, KenKen, Block Blast), each with its own Elo rating. Plain HTML/CSS/JS: no build step, no package manager, no framework.
+A phone-first PWA with nine puzzle games (Sudoku, Number Match, Wordle, Mastermind, Queens, Minesweeper, Word Ladder, KenKen, Block Blast), seven with their own Elo rating and two (Number Match, Block Blast) played for a high score. Plain HTML/CSS/JS: no build step, no package manager, no framework.
 
 ## Files
 
 - `index.html`: the whole app. CSS in one `<style>` block, all JS in one IIFE `<script>`. Sections are marked with `/* ---------- Name ---------- */` comments: Ratings, Accounts, Shell, Rules, Tip card, Sudoku, Number Match, Wordle, Mastermind, Queens, Minesweeper, Word Ladder, KenKen, Block Blast.
-- Block Blast is a score game: the rating sets the piece mix (`bbD`) and a target score (`bbTarget`), and the result is how the final score compares to the target. The target was calibrated against the greedy bot in `bbBest`, which also powers its tips.
+- High-score games have `score:true` in `GAMES`. They keep `best` and recent scores `sc` in the store (their old rating fields stay untouched), end with `finishScore` instead of `finish`, show score and stage through `hud`, and a revealed tip move costs `TIP_PTS` points.
+- Number Match runs in stages (`nmBoard(stage)`): clearing a board adds a stage bonus and deals a harder board; points carry over until you're stuck. Block Blast's piece mix ramps with the score (`bbD`); the greedy bot in `bbBest` calibrated that ramp and powers its tips.
 - Every generator guarantees a fair puzzle: Sudoku, Queens and KenKen have exactly one solution, Minesweeper boards are laid after the first tap and only kept if logic alone clears them, Word Ladder par is the shortest route through common words. Difficulty (`puzzleR`) comes from grading the puzzle, not from the target rating.
 - Word Ladder's word lists come from SCOWL (npm `wordlist-english`, Copyright 2000-2016 Kevin Atkinson). Its license asks that the copyright notice stays with the lists, so keep the comment above `LAD_COMMON`.
 - `config.js`: Supabase URL and publishable key (`window.ARCADE_CONFIG`). Empty means local-only mode. The key is public by design.
